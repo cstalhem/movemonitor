@@ -1,0 +1,27 @@
+---
+description: "Next.js App Router patterns and sharp edges"
+paths: ["**/*.ts", "**/*.tsx", "src/**", "app/**", "next.config*"]
+---
+
+# Next.js App Router
+
+## Components
+
+- Use App Router exclusively — no Pages Router patterns
+- Import useRouter, usePathname, useSearchParams from `next/navigation`, not `next/router`
+- Never pass event handlers or functions from Server Components to non-"use client" children
+- Never import Server Components into Client Components — pass them as `children` props instead
+- "use client" marks a boundary — all transitive imports become client bundle, so keep it narrow
+
+## Data & Actions
+
+- Use Server Components for data reads; use Server Actions for mutations only
+- Never fetch your own Route Handlers from Server Components — call the underlying function directly
+- Call redirect() only after revalidatePath/revalidateTag — redirect() throws and aborts execution
+- Server Action arguments and return values must be serializable — no functions or class instances
+- Server Actions are public HTTP endpoints — always validate authorization even if "only called from our form"
+
+## Configuration
+
+- Add `serverExternalPackages: ['better-sqlite3']` to next.config to prevent webpack bundling failures
+- In Next.js 15+, cookies(), headers(), params, searchParams are async — always await them
