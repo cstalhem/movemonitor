@@ -17,6 +17,11 @@ Baby movement tracker — a simple web app where a pregnant person can press a b
 - Self-hosted on a home server via Docker
 - SQLite is sufficient — no need for a separate database server
 
+## Implementation Approach
+
+- Delegate non-trivial code implementation to sub-agents — use the Agent tool to parallelize independent work
+- Trivial changes (one-line fixes, typos, config tweaks) can be done inline without sub-agents
+
 ## Key Commands
 
 ```bash
