@@ -8,12 +8,20 @@ Each step produces a working application. Steps build on each other sequentially
 
 Set up the project foundation and the primary user interaction.
 
-- Initialize Next.js project with TypeScript and Bun
-- Set up SQLite database with better-sqlite3 (schema: id, timestamp, intensity)
-- Create API route for logging a movement (POST with intensity)
+- Initialize Next.js 16.1 project with TypeScript, Tailwind CSS, and Bun (`src/` directory)
+- Set up Vitest for TDD (red/green approach used throughout all steps)
+- Define semantic Tailwind color tokens with placeholder values (swapped in Step 9)
+- Set up SQLite database with better-sqlite3 (schema: id, intensity, created_at)
+- Log buttons as a Client Component calling a Server Action — returns movement ID for later undo support
 - Build the Log screen with three buttons: Mycket, Mellan, Lite
 - Add floating action bar for navigation between Log and History screens
 - History screen exists as a placeholder
+
+> **Clarifications** (from Step 1 plan review, 2026-03-11):
+> - Vitest set up here, TDD red/green approach used throughout all steps
+> - Semantic Tailwind tokens from day one so Step 9 only swaps values, not component classes
+> - Log buttons are a Client Component (`"use client"`) to handle Server Action return values
+> - better-sqlite3 chosen over bun:sqlite because Docker production runs `node server.js`
 
 **Working state:** User can tap a button and a movement is persisted to the database.
 
@@ -23,11 +31,14 @@ Set up the project foundation and the primary user interaction.
 
 Build the History screen with a timeline for today.
 
-- Create API route for fetching movements by day
+- History screen as a Server Component that queries the database directly (no API route needed)
 - Build the left-aligned vertical timeline component (00:00 top, 23:59 bottom)
 - Show each movement as a dot with timestamp and intensity label
 - Display today's movements by default
 - Show empty-state message when no movements exist
+
+> **Clarification** (from Step 1 plan review, 2026-03-11):
+> - Server Component fetches data directly — no Route Handler needed for static "show today" view
 
 **Working state:** User can log movements and see them on a timeline for today.
 
@@ -37,8 +48,12 @@ Build the History screen with a timeline for today.
 
 Add the day-selection bar chart above the timeline.
 
-- Create API route for fetching daily summaries (count per intensity per day, for a date range)
+- Create Route Handler for fetching daily summaries (count per intensity per day, for a date range)
+- Create Route Handler for fetching movements by day (needed for client-side day switching)
 - Build the horizontally scrollable stacked bar chart component
+
+> **Clarification** (from Step 1 plan review, 2026-03-11):
+> - Route Handlers introduced here (not Step 2) because carousel day-switching is a client-side interaction requiring dynamic data fetching
 - Implement snap-to-center behavior with smooth scrolling
 - Show selected day indicator (arrow/highlight on centered bar)
 - Add legend below the bars showing per-type counts for the selected day
@@ -119,10 +134,13 @@ Package the app for deployment on the home server.
 
 Apply the final visual design pass.
 
-- Implement warm, soft color palette (soft pastels)
+- Replace placeholder semantic color tokens with the final warm, soft palette (soft pastels)
 - Add rounded shapes and comfortable spacing
 - Add button animations (pulse, ripple, or color change) on the Log screen
 - Choose colors for the three bar chart segments (one per intensity type)
 - Overall typography and layout refinement for mobile
+
+> **Clarification** (from Step 1 plan review, 2026-03-11):
+> - Semantic Tailwind tokens defined in Step 1 — this step only updates the token values, no component changes needed
 
 **Working state:** The app looks and feels finished — calming, friendly, and polished.
