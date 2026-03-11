@@ -16,6 +16,7 @@ paths: ["**/*.ts", "**/*.tsx", "src/**", "app/**", "next.config*"]
 ## Data & Actions
 
 - Use Server Components for data reads; use Server Actions for mutations only
+- Use Server Components for initial/static data loads — introduce Route Handlers only when client-side interactions need dynamic fetching
 - Never fetch your own Route Handlers from Server Components — call the underlying function directly
 - Call redirect() only after revalidatePath/revalidateTag — redirect() throws and aborts execution
 - Server Action arguments and return values must be serializable — no functions or class instances
@@ -23,5 +24,8 @@ paths: ["**/*.ts", "**/*.tsx", "src/**", "app/**", "next.config*"]
 
 ## Configuration
 
-- Add `serverExternalPackages: ['better-sqlite3']` to next.config to prevent webpack bundling failures
+- Add `serverExternalPackages: ['better-sqlite3']` to next.config to prevent Turbopack bundling failures
 - In Next.js 15+, cookies(), headers(), params, searchParams are async — always await them
+- Tailwind v4 uses CSS-first config (`@theme` in globals.css) — not `tailwind.config.ts`
+- Use `h-dvh` not `h-screen` — Safari's `100vh` is taller than visible area
+- Wrap Server Action calls in `useTransition` to get `isPending` and prevent double-submissions

@@ -13,12 +13,14 @@ Detailed plan for implementing Step 1 from the implementation plan.
 - Use `src/` directory for cleaner separation from config files
 - React 19.2 comes bundled
 
-### Tailwind CSS for styling
+### Tailwind CSS v4 for styling
 
 - Included in the default create-next-app scaffold — zero setup cost
 - Mobile-first by default (unprefixed styles apply to mobile, `sm:` / `md:` for larger)
-- Define semantic color tokens (`primary`, `accent`, `surface`, etc.) in `tailwind.config.ts` from the start with rough placeholder colors — components use `bg-primary`, `text-accent`, etc. so the palette can be swapped in Step 9 without touching any components
-- Handles safe area insets for notched phones via `env(safe-area-inset-bottom)`
+- Tailwind v4 uses CSS-first configuration — semantic color tokens are defined via `@theme` in `globals.css`, not in `tailwind.config.ts`
+- Define semantic tokens (`--color-primary`, `--color-accent`, `--color-surface`, etc.) with placeholder values — components use `bg-primary`, `text-accent`, etc. so the palette can be swapped in Step 9 without touching any components
+- Define safe area utilities via `@utility` directive (e.g., `pb-safe` for `env(safe-area-inset-bottom)`)
+- Use `h-dvh` instead of `h-screen` — Safari's `100vh` is taller than the visible area; `dvh` adapts correctly
 
 No component library (shadcn/ui, Radix, etc.) — the app has ~5 components and doesn't need the abstraction.
 
@@ -26,14 +28,15 @@ No component library (shadcn/ui, Radix, etc.) — the app has ~5 components and 
 
 - Proven native Node.js addon, works with Next.js standalone output
 - Chose this over `bun:sqlite` because the Docker production server runs `node server.js`, not Bun
-- Add to `serverExternalPackages` in `next.config.ts` to prevent bundling issues
+- Already in Next.js's default external packages list — explicit `serverExternalPackages` entry optional but recommended for clarity
+- Also works identically in Vitest (Node.js runtime), unlike `bun:sqlite` which can't run in Vitest
 - Synchronous API — simple, no async wrappers needed
 
 ### Server Actions for mutations
 
 - Recommended Next.js pattern for form-like interactions
-- The log buttons call a Server Action and use the return value (the created movement ID) for undo support in Step 4
-- The buttons must be in a Client Component (`"use client"`) to handle the Server Action response — build it this way from the start to avoid refactoring later
+- The log buttons call a Server Action via `useTransition` — provides `isPending` to disable the button during the round-trip and prevent accidental double-logs
+- The buttons must be in a Client Component (`"use client"`) to use `useTransition` and handle the Server Action response (the created movement ID, for undo support in Step 4)
 - The Server Action itself lives in a separate `actions.ts` file with `"use server"`
 
 ### Data fetching strategy (affects Steps 2–3)
@@ -76,7 +79,8 @@ CREATE TABLE IF NOT EXISTS movements (
 src/
   app/
     layout.tsx          # Root layout, viewport meta, font
-    page.tsx            # Redirects to /log (or renders Log as default)
+    globals.css         # Tailwind v4 @theme tokens + @utility definitions
+    layout.tsx          # Root layout, viewport meta, font
     log/
       page.tsx          # Log screen — three buttons
       actions.ts        # Server Action: createMovement(intensity)
@@ -97,7 +101,7 @@ src/
 - Fixed to the bottom of the viewport (`fixed bottom-0`)
 - Two items: Log (active by default) and History
 - Uses `usePathname()` from `next/navigation` to highlight the active tab
-- Respects safe area insets: `pb-[env(safe-area-inset-bottom)]`
+- Respects safe area insets via custom `pb-safe` utility
 - Main content area gets bottom padding to avoid being hidden behind the bar
 - This is a Client Component (`"use client"`) since it uses `usePathname`
 
@@ -105,9 +109,9 @@ src/
 
 - Three large buttons stacked vertically, centered on screen
 - Labels: "Mycket", "Mellan", "Lite"
-- Each button calls the `createMovement` Server Action with the corresponding intensity
+- Each button calls the `createMovement` Server Action via `useTransition` — button disabled while `isPending` to prevent double-logs
 - Minimum tap target: 48px height, but designed much larger (80-120px+)
-- `touch-action: manipulation` to eliminate double-tap-to-zoom delay
+- `touch-manipulation` (Tailwind v4 built-in) to eliminate double-tap-to-zoom delay
 - Basic press feedback via Tailwind (`active:scale-95` or similar)
 - No counters, stats, or other information on this screen
 
@@ -126,20 +130,25 @@ src/
 {
   output: 'standalone',
   serverExternalPackages: ['better-sqlite3'],
+  async redirects() {
+    return [{ source: '/', destination: '/log', permanent: false }]
+  },
 }
 ```
 
 - `standalone` needed for Docker deployment (Step 8), harmless to enable now
-- `serverExternalPackages` prevents webpack/turbopack from bundling the native addon
+- `serverExternalPackages` prevents Turbopack from bundling the native addon
+- Root redirect handled at config level (no component render) — more efficient than `redirect()` in a page
 
 ### Viewport meta
 
-In `layout.tsx`, set `viewport-fit=cover` to enable safe area inset environment variables on iOS:
+In `layout.tsx`, set `viewport-fit=cover` and `maximumScale: 1` to enable safe area insets and eliminate double-tap zoom delay:
 
 ```tsx
-export const viewport = {
+export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 1,
   viewportFit: 'cover',
 };
 ```
@@ -156,6 +165,8 @@ export const viewport = {
 ### Development
 - `@types/better-sqlite3` — TypeScript definitions
 - `vitest` — test runner
+- `@vitejs/plugin-react` — JSX/TSX transformation for Vitest
+- `vite-tsconfig-paths` — path alias resolution (`@/*`) in Vitest
 - `tailwindcss`, `postcss`, etc. — included by create-next-app
 - `eslint`, `eslint-config-next` — included by create-next-app
 
@@ -166,9 +177,10 @@ export const viewport = {
 ### Setup
 
 - Vitest as the test runner — fast, native TypeScript support, works with Bun
-- Add a `vitest.config.ts` at the project root
+- Add a `vitest.config.mts` at the project root with `@vitejs/plugin-react` and `vite-tsconfig-paths`
 - Add `"test": "vitest"` and `"test:run": "vitest run"` to `package.json` scripts
 - Tests live alongside source files as `*.test.ts` (e.g., `src/lib/db.test.ts`)
+- Use in-memory SQLite (`:memory:`) for test databases — fast, isolated, auto-cleaned on connection close
 
 ### What to test in Step 1
 
@@ -195,7 +207,7 @@ Using red/green TDD — write the failing test first, then implement:
 
 ### 2. Route structure — `/log` as a route or render at `/`?
 
-**Decision: `/log` as the default route.** The root `/` redirects to `/log`. This gives both screens clean URLs (`/log`, `/history`) and the nav bar always maps to a route. Simple `next/navigation` redirect in the root page.
+**Decision: `/log` as the default route.** The root `/` redirects to `/log` via `redirects` in `next.config.ts` (no component render needed). Both screens have clean URLs (`/log`, `/history`) and the nav bar maps directly to routes.
 
 ### 3. Server Actions vs Route Handlers for logging
 
@@ -203,4 +215,16 @@ Using red/green TDD — write the failing test first, then implement:
 
 ### 4. better-sqlite3 vs bun:sqlite
 
-**Decision: better-sqlite3.** The Docker production image runs `node server.js` (Next.js standalone output). `bun:sqlite` only works under the Bun runtime. better-sqlite3 works in both Node and Bun, making it the safer choice.
+**Decision: better-sqlite3.** The Docker production image runs `node server.js` (Next.js standalone output). `bun:sqlite` only works under the Bun runtime. better-sqlite3 works in both Node and Bun, and critically also works in Vitest (which runs on Node.js) — `bun:sqlite` cannot be imported in Vitest.
+
+### 5. Tailwind v4 CSS-first config vs backwards-compatible `tailwind.config.ts`
+
+**Decision: CSS-first.** New project, no legacy to support. Semantic tokens defined via `@theme` in `globals.css`. This is the recommended approach for Tailwind v4.
+
+### 6. Root redirect approach
+
+**Decision: `redirects` in `next.config.ts`.** Handles the `/` → `/log` redirect at the config level without rendering a component. Slightly more efficient and keeps the app directory clean.
+
+### 7. `maximumScale: 1` in viewport
+
+**Decision: Yes.** Disables pinch-to-zoom to eliminate double-tap delay. Acceptable trade-off for a single-purpose app with large tap targets.
