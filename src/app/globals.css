@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #8b5cf6;
+  --color-accent: #f59e0b;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f5f5f4;
+  --color-text: #1c1917;
+  --color-text-muted: #78716c;
+  --font-sans: var(--font-geist-sans);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
