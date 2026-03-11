@@ -37,7 +37,7 @@ No component library (shadcn/ui, Radix, etc.) — the app has ~5 components and 
 - Recommended Next.js pattern for form-like interactions
 - The log buttons call a Server Action via `useTransition` — provides `isPending` to disable the button during the round-trip and prevent accidental double-logs
 - The buttons must be in a Client Component (`"use client"`) to use `useTransition` and handle the Server Action response (the created movement ID, for undo support in Step 4)
-- The Server Action itself lives in a separate `actions.ts` file with `"use server"`
+- The Server Action itself lives in a separate `actions.ts` file with `"use server"` — it is a thin wrapper that delegates to the service layer in `src/lib/movements.ts`
 
 ### Data fetching strategy (affects Steps 2–3)
 
@@ -56,12 +56,17 @@ Single table:
 CREATE TABLE IF NOT EXISTS movements (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   intensity TEXT NOT NULL CHECK (intensity IN ('mycket', 'mellan', 'lite')),
-  created_at TEXT NOT NULL DEFAULT (datetime('now', 'localtime'))
+  created_at TEXT NOT NULL
 );
+
+CREATE INDEX IF NOT EXISTS idx_movements_created_at ON movements(created_at);
 ```
 
 - `intensity` stored as lowercase text with a CHECK constraint
-- `created_at` uses local time (single-timezone assumption per requirements)
+- `created_at` is an app-generated ISO 8601 timestamp with offset and millisecond precision (e.g., `2026-10-25T02:30:15.123+02:00`) — no `DEFAULT` clause, always provided by application code
+- Local time with offset preserves day-boundary query simplicity (`substr(created_at, 1, 10)`) while eliminating DST ambiguity
+- Index on `created_at` for efficient day-range queries in Steps 2–3
+- Schema version tracked via `PRAGMA user_version = 1` — checked on startup to detect future schema changes
 - No migration tool — `CREATE TABLE IF NOT EXISTS` on startup is sufficient for a single table
 
 ### Connection
@@ -69,7 +74,14 @@ CREATE TABLE IF NOT EXISTS movements (
 - Singleton via `globalThis` to survive hot module reloading in dev
 - WAL mode enabled on connection (`PRAGMA journal_mode=WAL`)
 - DB path from `process.env.DB_PATH`, defaulting to `./data/movemonitor.db`
+- On startup: auto-create the parent directory if it doesn't exist, fail fast with a clear error if the path is unwritable
 - `data/` directory added to `.gitignore`
+
+### Timezone
+
+- The app assumes a single timezone, configured via the `TZ` environment variable (e.g., `TZ=Europe/Stockholm`)
+- Timestamps are generated in application code using `new Date().toISOString()`-style formatting with the local offset
+- The `TZ` value must be set in the Dockerfile for production — if unset, Node.js defaults to UTC
 
 ---
 
@@ -80,16 +92,16 @@ src/
   app/
     layout.tsx          # Root layout, viewport meta, font
     globals.css         # Tailwind v4 @theme tokens + @utility definitions
-    layout.tsx          # Root layout, viewport meta, font
     log/
       page.tsx          # Log screen — three buttons
-      actions.ts        # Server Action: createMovement(intensity)
+      actions.ts        # Server Action: thin wrapper around service layer
     history/
       page.tsx          # Placeholder for now
     components/
       nav-bar.tsx       # Floating bottom navigation bar
   lib/
     db.ts               # Database singleton + schema init
+    movements.ts        # Service layer: createMovement() and future query functions
 ```
 
 ---
@@ -110,6 +122,7 @@ src/
 - Three large buttons stacked vertically, centered on screen
 - Labels: "Mycket", "Mellan", "Lite"
 - Each button calls the `createMovement` Server Action via `useTransition` — button disabled while `isPending` to prevent double-logs
+- Client-side debounce: ignore taps within 500ms of the last successful log to prevent accidental double-taps on fast connections (a simple timestamp check in the click handler, no library needed)
 - Minimum tap target: 48px height, but designed much larger (80-120px+)
 - `touch-manipulation` (Tailwind v4 built-in) to eliminate double-tap-to-zoom delay
 - Basic press feedback via Tailwind (`active:scale-95` or similar)
@@ -142,16 +155,17 @@ src/
 
 ### Viewport meta
 
-In `layout.tsx`, set `viewport-fit=cover` and `maximumScale: 1` to enable safe area insets and eliminate double-tap zoom delay:
+In `layout.tsx`, set `viewport-fit=cover` to enable safe area insets:
 
 ```tsx
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
   viewportFit: 'cover',
 };
 ```
+
+Note: `maximumScale` is intentionally omitted — pinch-to-zoom remains enabled for accessibility. The double-tap delay is eliminated by `touch-manipulation` on interactive elements instead.
 
 ---
 
@@ -187,9 +201,10 @@ export const viewport: Viewport = {
 Using red/green TDD — write the failing test first, then implement:
 
 1. **Database initialization** — schema creates the `movements` table on first connection
-2. **Create movement** — inserting a movement with each intensity persists correctly and returns an ID
+2. **Create movement** — inserting a movement with each intensity persists correctly and returns an ID with a valid ISO 8601 timestamp
 3. **Input validation** — invalid intensity values are rejected (CHECK constraint)
-4. **Server Action** — `createMovement` calls the DB layer and returns the movement ID
+4. **Service layer** — `createMovement` in `movements.ts` persists correctly and returns the movement ID
+5. **Server Action** — `createMovement` action delegates to the service layer and returns the movement ID
 
 ### What NOT to test yet
 
@@ -227,4 +242,16 @@ Using red/green TDD — write the failing test first, then implement:
 
 ### 7. `maximumScale: 1` in viewport
 
-**Decision: Yes.** Disables pinch-to-zoom to eliminate double-tap delay. Acceptable trade-off for a single-purpose app with large tap targets.
+**Decision: No.** Pinch-to-zoom remains enabled for accessibility. The double-tap delay is eliminated by `touch-manipulation` on interactive elements, which is already in the plan. `maximumScale: 1` is not needed.
+
+### 8. Timestamp format
+
+**Decision: App-generated ISO 8601 with offset and milliseconds** (e.g., `2026-10-25T02:30:15.123+02:00`). Timestamps are generated in Node.js application code, not by SQLite's `datetime()` function. This preserves simple day-boundary queries (`substr(created_at, 1, 10)`) while eliminating DST ambiguity and providing millisecond precision for ordering.
+
+### 9. Service layer
+
+**Decision: Yes.** Business logic lives in `src/lib/movements.ts`. The Server Action in `actions.ts` is a thin wrapper. This makes the core logic testable without mocking Next.js internals and provides a clean separation that later steps (Route Handlers in Step 3, delete in Step 5) can reuse.
+
+### 10. Tap debounce
+
+**Decision: 500ms client-side debounce.** Two taps within 500ms are treated as accidental. Implemented as a simple timestamp check in the click handler — no external library. This works alongside `useTransition`'s `isPending` which handles the server round-trip window.
