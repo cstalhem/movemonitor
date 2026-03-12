@@ -24,7 +24,7 @@ paths: ["**/*.ts", "**/*.tsx", "src/**", "app/**", "next.config*"]
 
 ## Configuration
 
-- Add `serverExternalPackages: ['better-sqlite3']` to next.config to prevent Turbopack bundling failures
+- `proxy.ts` is the session handler (Next.js 16 convention, replaces `middleware.ts`) — call `getUser()` immediately after creating the Supabase client
 - In Next.js 15+, cookies(), headers(), params, searchParams are async — always await them
 - Tailwind v4 uses CSS-first config (`@theme` in globals.css) — not `tailwind.config.ts`
 - Use `h-dvh` not `h-screen` — Safari's `100vh` is taller than visible area
