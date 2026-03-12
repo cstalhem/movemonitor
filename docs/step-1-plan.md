@@ -226,7 +226,7 @@ Using red/green TDD — write the failing test first, then implement:
 
 ### 3. Server Actions vs Route Handlers for logging
 
-**Decision: Server Action for Step 1.** The log button is a UI mutation with no external consumers. A Server Action keeps it simple — no need to define request/response shapes or handle HTTP methods. Route Handlers will be introduced in Step 2 for data fetching.
+**Decision: Server Action for Step 1.** The log button is a UI mutation with no external consumers. A Server Action keeps it simple — no need to define request/response shapes or handle HTTP methods. Route Handlers will be introduced in Step 3 for data fetching (carousel day-switching).
 
 ### 4. better-sqlite3 vs bun:sqlite
 
