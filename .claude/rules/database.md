@@ -1,11 +1,12 @@
 ---
-description: "SQLite and better-sqlite3 usage rules"
-paths: ["**/*.ts", "**/*.tsx"]
+description: "Supabase Postgres and RLS rules"
+paths: ["**/*.ts", "**/*.tsx", "supabase/**"]
 ---
 
 # Database
 
-- Enable WAL mode (`PRAGMA journal_mode=WAL`) to prevent SQLITE_BUSY errors under concurrent access
-- Use a singleton database connection — never open multiple handles to the same file
-- Keep queries fast — better-sqlite3 is synchronous and blocks the Node.js event loop
-- Store the database file outside the app directory (e.g., `/app/data/movemonitor.db`) for Docker volume mounting
+- Use `createClient()` from `@/lib/supabase/server` for server-side access, `@/lib/supabase/client` for browser
+- Always call `getUser()` to validate auth before mutations — do not rely on `getSession()` alone
+- RLS enforces data isolation — no application-level authorization checks needed beyond passing `user_id`
+- Schema changes go in `supabase/migrations/` and are applied via `supabase db push`
+- Use `TIMESTAMPTZ` for timestamps — day-boundary grouping uses `AT TIME ZONE 'Europe/Stockholm'`
