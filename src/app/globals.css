@@ -1,0 +1,28 @@
+@import "tailwindcss";
+
+@theme {
+  /* Terracotta & Cream */
+  --color-primary: #B87360;
+  --color-accent: #8A9A7B;
+  --color-surface: #FDF6EE;
+  --color-surface-alt: #F3E8DA;
+  --color-text: #3B2A22;
+  --color-text-muted: #8C7568;
+  --color-button-text: #FDF6EE;
+
+  /* State colors */
+  --color-info: #5E7489;
+  --color-info-bg: #EAEEF2;
+  --color-success: #5C6B3A;
+  --color-success-bg: #EEF2E6;
+  --color-warning: #8C6D28;
+  --color-warning-bg: #F8F0D8;
+  --color-error: #B04A4A;
+  --color-error-bg: #F9E8E8;
+
+  --font-sans: var(--font-geist-sans);
+}
+
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
