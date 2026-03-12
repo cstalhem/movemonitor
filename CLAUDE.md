@@ -4,18 +4,22 @@ Baby movement tracker — a simple web app where a pregnant person can press a b
 
 ## Tech Stack
 
-- **Frontend/Backend:** Next.js (App Router), TypeScript
-- **Database:** SQLite (via better-sqlite3)
-- **Runtime:** Bun
-- **Deployment:** Docker (standalone output) on home server
+- **Frontend/Backend:** Next.js 16.1 (App Router), TypeScript
+- **Database:** Supabase (Postgres)
+- **Auth:** Supabase Auth (email OTP)
+- **Email:** Resend (custom SMTP for Supabase Auth)
+- **Runtime:** Bun (local dev)
+- **Deployment:** Vercel
 - **Version control:** GitHub
 
 ## Design Assumptions
 
-- Single-user application — no authentication required
+- Multi-user application — Supabase Auth with email OTP
 - Mobile-first UI — primary interaction is a large tap target
-- Self-hosted on a home server via Docker
-- SQLite is sufficient — no need for a separate database server
+- Deployed on Vercel — no Docker, no self-hosting
+- RLS enforces data isolation per user at the database level
+- `proxy.ts` for session handling (Next.js 16 convention, replaces `middleware.ts`)
+- Timezone: `Europe/Stockholm` hardcoded for day-boundary grouping
 
 ## Implementation Approach
 
@@ -29,8 +33,6 @@ bun install          # Install dependencies
 bun run dev          # Start dev server
 bun run build        # Production build
 bun run lint         # Lint
-docker build -t movemonitor .   # Build Docker image
-docker run -p 3000:3000 -v movemonitor-data:/app/data movemonitor  # Run container
 ```
 
 # Knowledge System
