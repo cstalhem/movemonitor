@@ -1,6 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
 import { type Intensity } from "./constants";
+import { groupByDay, type DayCount } from "./day-counts";
 import { stockholmDayRange } from "./date";
+
+export type { DayCount };
 
 export type Movement = {
   id: string;
@@ -21,6 +24,25 @@ export async function getMovementsByDay(day: string): Promise<Movement[]> {
 
   if (error) throw error;
   return (data ?? []) as Movement[];
+}
+
+export async function getDayCounts(
+  startDay: string,
+  endDay: string,
+): Promise<DayCount[]> {
+  const supabase = await createClient();
+  const { start } = stockholmDayRange(startDay);
+  const { end } = stockholmDayRange(endDay);
+
+  const { data, error } = await supabase
+    .from("movements")
+    .select("intensity, occurred_at")
+    .gte("occurred_at", start)
+    .lt("occurred_at", end)
+    .order("occurred_at", { ascending: true });
+
+  if (error) throw error;
+  return groupByDay(data ?? [], startDay, endDay);
 }
 
 export async function createMovement(
