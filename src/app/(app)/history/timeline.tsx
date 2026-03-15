@@ -18,6 +18,10 @@ export function Timeline({ movements }: Props) {
         )?.label;
         const isLast = index === movements.length - 1;
 
+        const Icon = intensities.find(
+          (i) => i.value === movement.intensity
+        )?.icon;
+
         return (
           <li key={movement.id} className="flex gap-3">
             {/* Time column */}
@@ -28,7 +32,11 @@ export function Timeline({ movements }: Props) {
             {/* Dot + connector column */}
             <div className="flex flex-col items-center">
               <span className="flex size-7 items-center justify-center rounded-full bg-primary/20">
-                <span className="size-4 rounded-full bg-primary" />
+                {Icon ? (
+                  <Icon className="size-4 text-primary" />
+                ) : (
+                  <span className="size-4 rounded-full bg-primary" />
+                )}
               </span>
               {!isLast && <span className="w-px flex-1 bg-border" />}
             </div>

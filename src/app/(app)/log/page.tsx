@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useTransition } from "react";
 import { intensities } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
 import { logMovement } from "./actions";
 
 const DEBOUNCE_MS = 500;
@@ -25,15 +26,16 @@ export default function LogPage() {
 
   return (
     <div className='flex flex-1 flex-col items-center justify-center gap-4 px-6'>
-      {intensities.map(({ value, label }) => (
-        <button
+      {intensities.map(({ value, label, icon: Icon }) => (
+        <Button
           key={value}
           onClick={() => handleLog(value)}
           disabled={isPending}
-          className='w-full max-w-sm rounded-2xl bg-primary px-6 py-6 text-xl font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
+          className='w-full max-w-sm rounded-2xl px-6 py-6 text-xl font-semibold touch-manipulation active:scale-95 transition-transform'
         >
+          <Icon className='size-6' />
           {label}
-        </button>
+        </Button>
       ))}
     </div>
   );
