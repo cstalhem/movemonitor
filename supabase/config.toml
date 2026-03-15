@@ -1,2 +1,37 @@
 [project]
 
+[auth]
+site_url = "https://movemonitor.stalhem.se"
+additional_redirect_urls = [
+  "https://movemonitor.stalhem.se",
+  "https://movemonitor.stalhem.se/**",
+  "https://*-cstalhem.vercel.app/**",
+  "http://localhost:3000/**",
+  "https://movemonitor-cstalhems-projects.vercel.app/",
+  "https://movemonitor-cstalhems-projects.vercel.app/**",
+  "https://movemonitor-*-cstalhems-projects.vercel.app",
+  "https://movemonitor-*-cstalhems-projects.vercel.app/**",
+]
+enable_signup = false
+enable_anonymous_sign_ins = false
+
+[auth.email]
+enable_signup = true
+enable_confirmations = true
+otp_length = 6
+otp_expiry = 300
+
+[auth.mfa]
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+[auth.mfa.phone]
+enroll_enabled = false
+verify_enabled = false
+[auth.mfa.web_authn]
+enroll_enabled = false
+verify_enabled = false
+
+[auth.email.template.magic_link]
+subject = "Din inloggningskod"
+content_path = "./supabase/templates/magic-link.html"

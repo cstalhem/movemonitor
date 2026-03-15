@@ -6,3 +6,6 @@
 .env.keys
 .env.local
 .env.*.local
+
+# Generated email templates (source of truth is emails/*.tsx)
+templates/
