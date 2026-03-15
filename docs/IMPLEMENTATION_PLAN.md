@@ -34,7 +34,7 @@ Set up the project foundation and the primary user interaction.
 
 ---
 
-## Step 2: Supabase + auth + Vercel deployment
+## Step 2: Supabase + auth + Vercel deployment (DONE)
 
 Replace SQLite with Supabase Postgres, add multi-user auth, and deploy to Vercel.
 
@@ -74,7 +74,7 @@ Replace SQLite with Supabase Postgres, add multi-user auth, and deploy to Vercel
 
 ---
 
-## Step 3: Basic timeline
+## Step 3: Basic timeline (DONE)
 
 Build the History screen with a timeline for today.
 
