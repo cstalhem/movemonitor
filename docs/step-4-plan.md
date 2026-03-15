@@ -12,6 +12,16 @@ Add a day-selection bar chart above the timeline so the user can browse between 
 
 ---
 
+## Prerequisites: shadcn/ui
+
+Same as Step 3 — shadcn/ui is installed, token migration is complete. This step uses:
+
+- `cn()` from `@/lib/utils` for conditional className composition
+- shadcn `Skeleton` component for the timeline loading fallback
+- shadcn token names throughout (`text-foreground`, `text-muted-foreground`, `bg-primary`, `bg-card`, etc.)
+
+---
+
 ## What changes from Step 3
 
 Step 3 delivered the vertical timeline showing today's movements, date helpers, and `getMovementsByDay`. Step 4 adds day navigation:
@@ -21,6 +31,7 @@ Step 3 delivered the vertical timeline showing today's movements, date helpers, 
 3. **Carousel component:** New Client Component — horizontally scrollable stacked bar chart with snap-to-center
 4. **Legend component:** Shows per-intensity counts for the selected day
 5. **Date helpers:** Add `formatDayLabel` for displaying date headers (e.g., "Idag", "Igar", "mån 10 mar")
+6. **Timeline skeleton:** Uses shadcn `Skeleton` component for the Suspense fallback
 
 **No changes to:** auth, proxy, login, log page/actions, NavBar, database schema, RLS policies, deployment config, timeline component (Step 3)
 
@@ -93,7 +104,7 @@ import { Suspense } from "react";
 import { todayInStockholm, offsetDay, isValidDateString } from "@/lib/date";
 import { getDayCounts } from "@/lib/movements";
 import { DayCarousel } from "./day-carousel";
-import { DayTimeline } from "./day-timeline";
+import DayTimeline from "./day-timeline";
 import { TimelineSkeleton } from "./timeline-skeleton";
 import { redirect } from "next/navigation";
 
@@ -170,7 +181,7 @@ export default async function DayTimeline({ day }: { day: string }) {
   if (movements.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-text-muted">Inga rorelser registrerade</p>
+        <p className="text-muted-foreground">Inga rorelser registrerade</p>
       </div>
     );
   }
@@ -265,7 +276,7 @@ function StackedBar({ dayCount, isSelected, maxTotal }: Props) {
   const barHeight = maxTotal > 0 ? (total / maxTotal) * maxHeight : 0;
 
   return (
-    <div className="flex flex-col items-center gap-1 w-8">
+    <div className={cn("flex flex-col items-center gap-1 w-8")}>
       <div
         className="flex flex-col justify-end w-full"
         style={{ height: maxHeight }}
@@ -275,9 +286,9 @@ function StackedBar({ dayCount, isSelected, maxTotal }: Props) {
             className="flex flex-col w-full rounded-sm overflow-hidden"
             style={{ height: barHeight }}
           >
-            <div className="bg-primary" style={{ flexGrow: dayCount.mycket }} />
-            <div className="bg-accent" style={{ flexGrow: dayCount.mellan }} />
-            <div className="bg-text-muted" style={{ flexGrow: dayCount.lite }} />
+            <div className="bg-chart-1" style={{ flexGrow: dayCount.mycket }} />
+            <div className="bg-chart-2" style={{ flexGrow: dayCount.mellan }} />
+            <div className="bg-chart-3" style={{ flexGrow: dayCount.lite }} />
           </div>
         ) : null}
       </div>
@@ -296,14 +307,14 @@ function StackedBar({ dayCount, isSelected, maxTotal }: Props) {
 
 **When bars rescale:** Prepending older days via prefetch may change `maxTotal`. All bars rescale instantly (no animation). This only happens when offscreen data loads, so the visual shift is subtle.
 
-**Colors:** Uses existing semantic tokens. The three intensity segments use distinct colors: `bg-primary` (mycket), `bg-accent` (mellan), `bg-text-muted` (lite). Final colors come in Step 9.
+**Colors:** Uses shadcn chart tokens for the three intensity segments: `bg-chart-1` (mycket), `bg-chart-2` (mellan), `bg-chart-3` (lite). These are defined in the shadcn theme CSS and can be customized to match the project's terracotta/sage palette. Final color tuning comes in Step 9.
 
 ### Date label
 
 Below the bar chart, centered:
 
 ```tsx
-<p className="text-center text-sm font-medium text-text">
+<p className="text-center text-sm font-medium text-foreground">
   {formatDayLabel(selectedDay, today)}
 </p>
 ```
@@ -318,10 +329,10 @@ Below the bar chart, centered:
 Below the date label:
 
 ```tsx
-<div className="flex justify-center gap-4 text-xs text-text-muted">
-  <span><span className="inline-block w-2 h-2 rounded-full bg-primary mr-1" />Mycket: {selectedCount.mycket}</span>
-  <span><span className="inline-block w-2 h-2 rounded-full bg-accent mr-1" />Mellan: {selectedCount.mellan}</span>
-  <span><span className="inline-block w-2 h-2 rounded-full bg-text-muted mr-1" />Lite: {selectedCount.lite}</span>
+<div className="flex justify-center gap-4 text-xs text-muted-foreground">
+  <span><span className="inline-block w-2 h-2 rounded-full bg-chart-1 mr-1" />Mycket: {selectedCount.mycket}</span>
+  <span><span className="inline-block w-2 h-2 rounded-full bg-chart-2 mr-1" />Mellan: {selectedCount.mellan}</span>
+  <span><span className="inline-block w-2 h-2 rounded-full bg-chart-3 mr-1" />Lite: {selectedCount.lite}</span>
 </div>
 ```
 
@@ -497,6 +508,11 @@ requestAnimationFrame(() => { isProgrammaticScroll.current = false; });
 
 ```
 src/
+  components/
+    ui/
+      skeleton.tsx                      # INSTALLED: shadcn Skeleton (used by timeline-skeleton)
+      button.tsx                        # INSTALLED: shadcn Button (available for future use)
+      ...                               # Other shadcn components as needed
   app/
     (auth)/                             # UNCHANGED
       ...
@@ -508,15 +524,16 @@ src/
         day-carousel.tsx                # NEW: carousel Client Component (bar chart + legend)
         day-timeline.tsx                # NEW: async Server Component (extracted from page)
         timeline.tsx                    # UNCHANGED (from Step 3)
-        timeline-skeleton.tsx           # NEW: loading skeleton for Suspense fallback
+        timeline-skeleton.tsx           # NEW: loading skeleton using shadcn Skeleton
       log/
         actions.ts                      # UNCHANGED
         page.tsx                        # UNCHANGED
       layout.tsx                        # UNCHANGED
-    globals.css                         # MODIFY: add scrollbar-hide utility
+    globals.css                         # MODIFY: add scrollbar-hide utility (shadcn theme tokens already present)
     layout.tsx                          # UNCHANGED
     page.tsx                            # UNCHANGED
   lib/
+    utils.ts                            # INSTALLED: cn() utility (from shadcn init)
     supabase/
       client.ts                         # UNCHANGED
       server.ts                         # UNCHANGED
@@ -676,13 +693,30 @@ Use the browser's built-in scroll anchoring.
 
 ### 11. Timeline loading skeleton
 
-A simple placeholder that mimics the timeline structure:
+Uses the shadcn `Skeleton` component to mimic the timeline structure:
 
-- 3-4 animated pulse bars at varying widths
+```tsx
+// src/app/(app)/history/timeline-skeleton.tsx
+import { Skeleton } from "@/components/ui/skeleton";
+
+export function TimelineSkeleton() {
+  return (
+    <div className="flex flex-col gap-4 px-4 pt-4">
+      {Array.from({ length: 4 }).map((_, i) => (
+        <div key={i} className="flex items-center gap-3">
+          <Skeleton className="h-4 w-10" />
+          <Skeleton className="h-3 w-3 rounded-full" />
+          <Skeleton className="h-4 w-20" />
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
 - Same layout as the real timeline (left time column + center dot + right label)
-- Uses Tailwind's `animate-pulse` on `bg-surface` colored blocks
-
-This is intentionally minimal — visual polish comes in Step 9.
+- Uses shadcn's `Skeleton` which provides the animated pulse effect with correct theme colors
+- This is intentionally minimal — visual polish comes in Step 9
 
 ### 12. Timezone correctness in all date helpers
 

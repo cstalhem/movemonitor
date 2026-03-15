@@ -12,6 +12,33 @@ Build the History screen with a left-aligned vertical timeline showing today's m
 
 ---
 
+## Prerequisites: shadcn/ui
+
+Step 3 assumes shadcn/ui is already installed and the color token migration is complete. The project uses shadcn's CSS variable naming convention throughout.
+
+### Token mapping (completed before Step 3)
+
+| Old token | shadcn token | Tailwind class | Value |
+|---|---|---|---|
+| `--color-primary` | `--primary` | `bg-primary`, `text-primary` | `#B87360` |
+| `--color-button-text` | `--primary-foreground` | `text-primary-foreground` | `#FDF6EE` |
+| `--color-surface-alt` | `--background` | `bg-background` | `#F3E8DA` |
+| `--color-surface` | `--card` | `bg-card` | `#FDF6EE` |
+| `--color-text` | `--foreground` | `text-foreground` | `#3B2A22` |
+| `--color-text-muted` | `--muted-foreground` | `text-muted-foreground` | `#8C7568` |
+| `--color-accent` | `--accent` | `bg-accent` | `#8A9A7B` |
+| `--color-error` | `--destructive` | `text-destructive` | `#B04A4A` |
+| `--color-error-bg` | `--destructive` (at low opacity) | `bg-destructive/10` | `#F9E8E8` |
+| *(new)* | `--border` | `border-border` | derived |
+| *(new)* | `--input` | `border-input` | derived |
+| *(new)* | `--ring` | `ring-ring` | derived |
+| *(new)* | `--muted` | `bg-muted` | derived |
+| `--color-info`, etc. | kept as custom tokens | `text-info`, `bg-info-bg` | unchanged |
+
+**Also available:** `cn()` utility from `src/lib/utils.ts` (installed by shadcn), shadcn `Skeleton` and `Button` components.
+
+---
+
 ## What changes from Step 2
 
 Step 2 delivered Supabase Postgres, auth, route groups, and Vercel deployment. Step 3 adds the read path:
@@ -139,10 +166,10 @@ export default async function HistoryPage() {
 
   return (
     <div className="flex flex-1 flex-col px-4 pt-4">
-      <h1 className="text-lg font-semibold text-text mb-4">Idag</h1>
+      <h1 className="text-lg font-semibold text-foreground mb-4">Idag</h1>
       {movements.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
-          <p className="text-text-muted">Inga rörelser registrerade idag</p>
+          <p className="text-muted-foreground">Inga rörelser registrerade idag</p>
         </div>
       ) : (
         <Timeline movements={movements} />
@@ -192,7 +219,8 @@ type Props = {
 **Implementation notes:**
 - Each entry is a flex row: `[time] [dot + line] [label]`
 - The vertical line connects dots using a CSS pseudo-element or a border on the dot column
-- Dots can use the semantic color tokens — `bg-primary` for now, intensity-specific colors come in Step 9
+- Dots use the semantic color tokens — `bg-primary` for now, intensity-specific colors come in Step 9
+- Use `cn()` from `@/lib/utils` for conditional className composition
 - Uniform spacing between entries (no proportional spacing — that's Step 7)
 - No interactivity — tapping entries does nothing (that's Step 6 for delete)
 - The component uses `formatTime()` from `src/lib/date.ts` to display timestamps
@@ -217,6 +245,9 @@ Use a simple lookup map. Consider extracting the `intensities` constant from `sr
 
 ```
 src/
+  components/
+    ui/                         # INSTALLED: shadcn component directory (from init)
+      ...                       # Components added as needed via `bunx shadcn@latest add`
   app/
     (auth)/                     # UNCHANGED (from Step 2)
       ...
@@ -230,9 +261,11 @@ src/
         actions.ts              # UNCHANGED
         page.tsx                # MODIFY: import intensities from shared constants
       layout.tsx                # UNCHANGED
+    globals.css                 # MODIFIED: shadcn theme tokens (from init + migration)
     layout.tsx                  # UNCHANGED
     page.tsx                    # UNCHANGED
   lib/
+    utils.ts                    # INSTALLED: cn() utility (from shadcn init)
     supabase/
       client.ts                 # UNCHANGED
       server.ts                 # UNCHANGED
