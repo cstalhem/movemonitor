@@ -155,6 +155,7 @@ Make the app installable on mobile home screens.
 - Create an app icon
 - Verify install-to-home-screen flow on iOS and Android
 - Install-to-home-screen only — no offline support, network required
+- Verify Sonner toast positioning with iOS top safe area inset (`env(safe-area-inset-top)`); use Sonner's `mobileOffset` prop if needed
 
 **Working state:** User can install the app to their home screen and use it without browser chrome.
 
