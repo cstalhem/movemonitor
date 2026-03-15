@@ -47,25 +47,28 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="w-full max-w-sm">
-      <h1 className="text-2xl font-bold text-text mb-8 text-center">
+    <div className='w-full max-w-sm'>
+      <h1 className='text-2xl font-bold text-foreground mb-8 text-center'>
         Movemonitor
       </h1>
 
       {form.error && (
-        <div className="mb-4 rounded-lg bg-error-bg px-4 py-3 text-sm text-error">
+        <div className='mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive'>
           {form.error}
         </div>
       )}
 
       {form.phase === "email" ? (
-        <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
-          <label htmlFor="email" className="text-sm font-medium text-text">
+        <form onSubmit={handleEmailSubmit} className='flex flex-col gap-4'>
+          <label
+            htmlFor='email'
+            className='text-sm font-medium text-foreground'
+          >
             E-post
           </label>
           <input
-            id="email"
-            type="email"
+            id='email'
+            type='email'
             required
             autoFocus
             value={form.email}
@@ -73,26 +76,26 @@ export default function LoginPage() {
               form.setEmail(e.target.value);
               kick();
             }}
-            placeholder="din@email.se"
-            className="rounded-lg border border-text-muted/30 bg-surface px-4 py-3 text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder='din@email.se'
+            className='rounded-lg border border-input bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring'
           />
           <button
-            type="submit"
+            type='submit'
             disabled={form.loading}
-            className="rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-button-text touch-manipulation active:scale-95 transition-transform disabled:opacity-50"
+            className='rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
           >
             {form.loading ? "Skickar..." : "Skicka kod"}
           </button>
         </form>
       ) : (
-        <form onSubmit={handleOtpSubmit} className="flex flex-col gap-4">
-          <p className="text-sm text-text-muted text-center">
+        <form onSubmit={handleOtpSubmit} className='flex flex-col gap-4'>
+          <p className='text-sm text-muted-foreground text-center'>
             Ange koden som skickades till {form.email}
           </p>
           <input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
+            type='text'
+            inputMode='numeric'
+            pattern='[0-9]*'
             maxLength={6}
             required
             autoFocus
@@ -101,21 +104,21 @@ export default function LoginPage() {
               form.setOtp(e.target.value);
               kick();
             }}
-            placeholder="000000"
-            className="rounded-lg border border-text-muted/30 bg-surface px-4 py-3 text-center text-2xl tracking-widest text-text placeholder:text-text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary"
+            placeholder='000000'
+            className='rounded-lg border border-input bg-card px-4 py-3 text-center text-2xl tracking-widest text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring'
           />
           <button
-            type="submit"
+            type='submit'
             disabled={form.loading}
-            className="rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-button-text touch-manipulation active:scale-95 transition-transform disabled:opacity-50"
+            className='rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
           >
             {form.loading ? "Verifierar..." : "Logga in"}
           </button>
           <button
-            type="button"
+            type='button'
             onClick={handleResend}
             disabled={!form.canResend || form.loading}
-            className="text-sm text-text-muted disabled:opacity-50"
+            className='text-sm text-muted-foreground disabled:opacity-50'
           >
             {form.canResend ? "Skicka ny kod" : "Skicka ny kod (vänta...)"}
           </button>

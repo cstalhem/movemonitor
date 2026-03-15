@@ -12,13 +12,13 @@ export function NavBar() {
   ];
 
   return (
-    <nav className="fixed bottom-0 inset-x-0 z-10 flex bg-surface pb-safe">
+    <nav className='fixed bottom-0 inset-x-0 z-10 flex bg-card pb-safe'>
       {tabs.map((tab) => (
         <Link
           key={tab.href}
           href={tab.href}
           className={`flex-1 py-3 text-center text-sm font-medium ${
-            pathname === tab.href ? "text-primary" : "text-text-muted"
+            pathname === tab.href ? "text-primary" : "text-muted-foreground"
           }`}
         >
           {tab.label}

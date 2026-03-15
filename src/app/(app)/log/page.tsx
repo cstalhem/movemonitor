@@ -25,17 +25,17 @@ export default function LogPage() {
         await logMovement(intensity);
       });
     },
-    [startTransition]
+    [startTransition],
   );
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
+    <div className='flex flex-1 flex-col items-center justify-center gap-4 px-6'>
       {intensities.map(({ value, label }) => (
         <button
           key={value}
           onClick={() => handleLog(value)}
           disabled={isPending}
-          className="w-full max-w-sm rounded-2xl bg-primary px-6 py-6 text-xl font-semibold text-button-text touch-manipulation active:scale-95 transition-transform disabled:opacity-50"
+          className='w-full max-w-sm rounded-2xl bg-primary px-6 py-6 text-xl font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
         >
           {label}
         </button>
