@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { todayInStockholm, stockholmDayRange, formatTime } from "./date";
+import {
+  todayInStockholm,
+  stockholmDayRange,
+  formatTime,
+  offsetDay,
+  formatDayLabel,
+  isValidDateString,
+} from "./date";
 
 describe("todayInStockholm", () => {
   beforeEach(() => {
@@ -62,5 +69,69 @@ describe("stockholmDayRange", () => {
     const range = stockholmDayRange("2026-10-25");
     expect(range.start).toBe("2026-10-24T22:00:00.000Z"); // midnight in CEST (UTC+2)
     expect(range.end).toBe("2026-10-25T23:00:00.000Z"); // midnight in CET (UTC+1)
+  });
+});
+
+describe("offsetDay", () => {
+  it("returns same day for offset 0", () => {
+    expect(offsetDay("2026-03-15", 0)).toBe("2026-03-15");
+  });
+
+  it("moves backward by 1 day", () => {
+    expect(offsetDay("2026-03-15", -1)).toBe("2026-03-14");
+  });
+
+  it("moves forward by 7 days", () => {
+    expect(offsetDay("2026-03-15", 7)).toBe("2026-03-22");
+  });
+
+  it("handles month boundary", () => {
+    expect(offsetDay("2026-04-01", -1)).toBe("2026-03-31");
+  });
+
+  it("handles DST spring-forward", () => {
+    // 2026-03-29 is a 23-hour day in Stockholm — offsetDay must still work
+    expect(offsetDay("2026-03-29", -1)).toBe("2026-03-28");
+    expect(offsetDay("2026-03-28", 1)).toBe("2026-03-29");
+  });
+
+  it("moves backward by 13 days", () => {
+    expect(offsetDay("2026-03-15", -13)).toBe("2026-03-02");
+  });
+});
+
+describe("formatDayLabel", () => {
+  it('returns "Idag" for today', () => {
+    expect(formatDayLabel("2026-03-15", "2026-03-15")).toBe("Idag");
+  });
+
+  it('returns "Igår" for yesterday', () => {
+    expect(formatDayLabel("2026-03-14", "2026-03-15")).toBe("Igår");
+  });
+
+  it("returns Swedish short date for other days", () => {
+    const result = formatDayLabel("2026-03-11", "2026-03-15");
+    // Should be like "ons 11 mar" (Swedish weekday short + day + month short)
+    expect(result).toMatch(/\w+ 11 mar/);
+  });
+});
+
+describe("isValidDateString", () => {
+  it("accepts valid dates", () => {
+    expect(isValidDateString("2026-03-15")).toBe(true);
+    expect(isValidDateString("2026-02-28")).toBe(true);
+    expect(isValidDateString("2024-02-29")).toBe(true); // leap year
+  });
+
+  it("rejects malformed strings", () => {
+    expect(isValidDateString("not-a-date")).toBe(false);
+    expect(isValidDateString("")).toBe(false);
+    expect(isValidDateString("2026-3-15")).toBe(false);
+  });
+
+  it("rejects impossible dates", () => {
+    expect(isValidDateString("2026-02-29")).toBe(false); // not a leap year
+    expect(isValidDateString("2026-13-01")).toBe(false);
+    expect(isValidDateString("2026-02-30")).toBe(false);
   });
 });

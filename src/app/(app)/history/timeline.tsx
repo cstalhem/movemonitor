@@ -11,38 +11,43 @@ type Props = {
 
 export function Timeline({ movements }: Props) {
   return (
-    <ol className="flex flex-col">
+    <ol className='flex flex-col px-6'>
       {movements.map((movement, index) => {
         const label = intensities.find(
-          (i) => i.value === movement.intensity
+          (i) => i.value === movement.intensity,
         )?.label;
         const isLast = index === movements.length - 1;
 
         const Icon = intensities.find(
-          (i) => i.value === movement.intensity
+          (i) => i.value === movement.intensity,
         )?.icon;
 
         return (
-          <li key={movement.id} className="flex gap-3">
+          <li key={movement.id} className='flex gap-3'>
             {/* Time column */}
-            <span className="w-14 shrink-0 leading-7 text-lg tabular-nums text-muted-foreground">
+            <span className='w-14 shrink-0 leading-7 text-lg tabular-nums text-muted-foreground'>
               {formatTime(movement.occurred_at)}
             </span>
 
             {/* Dot + connector column */}
-            <div className="flex flex-col items-center">
-              <span className="flex size-7 items-center justify-center rounded-full bg-primary/20">
+            <div className='flex flex-col items-center'>
+              <span className='flex size-7 items-center justify-center rounded-full bg-primary/20'>
                 {Icon ? (
-                  <Icon className="size-4 text-primary" />
+                  <Icon className='size-4 text-primary' />
                 ) : (
-                  <span className="size-4 rounded-full bg-primary" />
+                  <span className='size-4 rounded-full bg-primary' />
                 )}
               </span>
-              {!isLast && <span className="w-px flex-1 bg-border" />}
+              {!isLast && <span className='w-px flex-1 bg-border' />}
             </div>
 
             {/* Label column */}
-            <span className={cn("pb-8 leading-7 text-lg text-foreground", isLast && "pb-0")}>
+            <span
+              className={cn(
+                "pb-8 leading-7 text-lg text-foreground",
+                isLast && "pb-0",
+              )}
+            >
               {label}
             </span>
           </li>

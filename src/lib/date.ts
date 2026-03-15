@@ -62,6 +62,36 @@ export function stockholmDayRange(
   };
 }
 
+export function offsetDay(day: string, offset: number): string {
+  const date = new Date(`${day}T12:00:00Z`);
+  date.setUTCDate(date.getUTCDate() + offset);
+  return date.toLocaleDateString("sv-SE", { timeZone: TZ });
+}
+
+export function formatDayLabel(day: string, today: string): string {
+  if (day === today) return "Idag";
+  if (day === offsetDay(today, -1)) return "Igår";
+  const date = new Date(`${day}T12:00:00Z`);
+  return date.toLocaleDateString("sv-SE", {
+    timeZone: TZ,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  });
+}
+
+export function isValidDateString(s: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return false;
+  const date = new Date(`${s}T12:00:00Z`);
+  if (isNaN(date.getTime())) return false;
+  const [year, month, day] = s.split("-").map(Number);
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() + 1 === month &&
+    date.getUTCDate() === day
+  );
+}
+
 export function formatTime(isoString: string): string {
   return new Date(isoString).toLocaleTimeString("sv-SE", {
     timeZone: TZ,
