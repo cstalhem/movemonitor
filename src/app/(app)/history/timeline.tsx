@@ -37,7 +37,7 @@ export function Timeline({ movements }: Props) {
 
             {/* Dot + connector column */}
             <div className='flex flex-col items-center'>
-              <span className={cn('flex size-7 items-center justify-center rounded-full', colorClasses.bg)}>
+              <span className={cn('flex size-7 items-center justify-center rounded-full border border-current/20', colorClasses.bg, colorClasses.text)}>
                 {Icon ? (
                   <Icon className={cn('size-4', colorClasses.text)} />
                 ) : (
