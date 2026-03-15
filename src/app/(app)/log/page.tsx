@@ -1,15 +1,10 @@
 "use client";
 
 import { useCallback, useRef, useTransition } from "react";
+import { intensities } from "@/lib/constants";
 import { logMovement } from "./actions";
 
 const DEBOUNCE_MS = 500;
-
-const intensities = [
-  { value: "mycket", label: "Mycket" },
-  { value: "mellan", label: "Mellan" },
-  { value: "lite", label: "Lite" },
-] as const;
 
 export default function LogPage() {
   const [isPending, startTransition] = useTransition();
