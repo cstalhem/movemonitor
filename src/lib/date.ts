@@ -32,7 +32,7 @@ export function stockholmDayRange(
     };
 
     // First guess: midnight UTC on that day (close to Stockholm midnight)
-    let guess = new Date(Date.UTC(year, month - 1, dayNum, 0, 0, 0));
+    const guess = new Date(Date.UTC(year, month - 1, dayNum, 0, 0, 0));
     let local = getLocalParts(guess);
     let localMs =
       (local.hour * 3600 + local.minute * 60 + local.second) * 1000;
