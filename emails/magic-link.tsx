@@ -36,7 +36,21 @@ export default function MagicLink() {
           padding: "40px 0",
         }}
       >
-        <Container style={{ maxWidth: "480px", margin: "0 auto" }}>
+        <Container style={{ maxWidth: "480px", margin: "0 auto", padding: "0 16px" }}>
+          <Heading
+            as="h1"
+            style={{
+              fontSize: "20px",
+              fontWeight: 700,
+              color: colors.foreground,
+              textTransform: "uppercase" as const,
+              letterSpacing: "1.5px",
+              margin: "0 0 20px 0",
+            }}
+          >
+            Movemonitor
+          </Heading>
+
           <Section
             style={{
               backgroundColor: colors.card,
@@ -45,21 +59,8 @@ export default function MagicLink() {
               padding: "40px 32px",
             }}
           >
-            <Text
-              style={{
-                fontSize: "13px",
-                fontWeight: 600,
-                color: colors.mutedForeground,
-                textTransform: "uppercase" as const,
-                letterSpacing: "1.5px",
-                margin: "0 0 24px 0",
-              }}
-            >
-              Movemonitor
-            </Text>
-
             <Heading
-              as="h1"
+              as="h2"
               style={{
                 fontSize: "24px",
                 fontWeight: 700,
@@ -165,10 +166,10 @@ export default function MagicLink() {
               fontSize: "12px",
               color: colors.mutedForeground,
               textAlign: "center" as const,
-              margin: "24px 0 0 0",
+              margin: "16px 0 0 0",
             }}
           >
-            Movemonitor
+            movemonitor.stalhem.se
           </Text>
         </Container>
       </Body>
