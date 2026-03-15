@@ -47,8 +47,11 @@ Step 2 delivered Supabase Postgres, auth, route groups, and Vercel deployment. S
 2. **History page:** Replace placeholder with a Server Component that fetches and displays today's movements
 3. **Timeline component:** New Client Component for the vertical timeline UI
 4. **Timezone handling:** Day-boundary computation in TypeScript using `Intl`, passed to Supabase query builder
+5. **CSS housekeeping:** Fix `components.json` path and clean up `globals.css` issues left over from shadcn init
 
 **No changes to:** auth, proxy, login, log page, NavBar, database schema, RLS policies, deployment config
+
+**Housekeeping changes to:** `components.json` (fix CSS path), `globals.css` (remove .dark duplicates, fix sidebar token references)
 
 ---
 
@@ -193,13 +196,13 @@ A Client Component that renders the left-aligned vertical timeline:
 
 ```
 ┌──────────────────────────┐
-│ 08:23  ● Mycket          │
+│ 08:23  ◉ Mycket          │
 │         │                │
-│ 10:45  ● Mellan          │
+│ 10:45  ◉ Mellan          │
 │         │                │
-│ 14:12  ● Lite            │
+│ 14:12  ◉ Lite            │
 │         │                │
-│ 16:30  ● Mycket          │
+│ 16:30  ◉ Mycket          │
 └──────────────────────────┘
 ```
 
@@ -216,14 +219,46 @@ type Props = {
 };
 ```
 
-**Implementation notes:**
-- Each entry is a flex row: `[time] [dot + line] [label]`
-- The vertical line connects dots using a CSS pseudo-element or a border on the dot column
-- Dots use the semantic color tokens — `bg-primary` for now, intensity-specific colors come in Step 9
+### Design approach: custom build, community-inspired
+
+We researched three community shadcn timeline components (Tourniercy/shadcn-timeline, timDeHof/shadcn-timeline, shadcn Studio Timeline 5) and concluded that all are designed for richer content (changelogs, status trackers) than our simple `[time] [dot] [label]` layout. Instead of adopting and stripping down a community component, we build a purpose-built ~30-line component borrowing specific techniques from the research:
+
+| Technique | Source | What we borrow |
+|---|---|---|
+| Dot rendering | shadcn Studio T5 | Nested `<span>` with `bg-primary/20` outer halo + `bg-primary` inner circle |
+| Connector line | shadcn Studio T5 | `<span className="w-px flex-1 border" />` — a 1px flex-growing element using the semantic `border` token |
+| Last-item line hiding | Tourniercy | `group` on the item + conditional class or `last:` variant to suppress the connector on the final entry |
+
+**Why not adopt a community component:**
+- All three are designed for content-rich entries (titles, descriptions, badges, accordions) — our entries are one-liners
+- Both Tourniercy and shadcn Studio T5 have mobile layouts that stack content vertically, but we want an always-inline `[time] [dot] [label]` row (mobile-first app, always portrait)
+- timDeHof requires `framer-motion` (~35kb gzip) — unjustified for a static list
+- Steps 6 and 9 will modify this component significantly (tap-to-delete, intensity-specific dot colors) — owning the code from the start avoids fighting external abstractions
+
+### Implementation notes
+
+**Dot:** Two nested `<span>` elements — outer ring with `bg-primary/20` and inner circle with `bg-primary`. This creates a subtle halo effect. In Step 9, these become intensity-specific colors.
+
+```tsx
+<span className="flex size-4.5 items-center justify-center rounded-full bg-primary/20">
+  <span className="size-3 rounded-full bg-primary" />
+</span>
+```
+
+**Connector line:** A `<span className="w-px flex-1 border" />` stretching between dots. Uses the `--border` token (set in `@layer base` via `@apply border-border`), so it adapts to the theme automatically. Hidden on the last item.
+
+**Layout:** Each entry is a flex row with three sections:
+1. Fixed-width time column (`text-muted-foreground tabular-nums`)
+2. Center column containing the dot and connector line (`flex flex-col items-center`)
+3. Intensity label (`text-foreground`)
+
+Items have uniform vertical padding (`pb-8`). No proportional spacing — that's Step 7.
+
+**Other notes:**
 - Use `cn()` from `@/lib/utils` for conditional className composition
-- Uniform spacing between entries (no proportional spacing — that's Step 7)
 - No interactivity — tapping entries does nothing (that's Step 6 for delete)
 - The component uses `formatTime()` from `src/lib/date.ts` to display timestamps
+- Zero additional dependencies — no `Badge`, no `framer-motion`
 
 **Why a Client Component?** Although the initial render could be server-side, making it a Client Component from the start avoids a refactor when Step 6 adds tap-to-delete interactivity and Step 7 adds scroll behavior. The movements data is passed as props from the Server Component parent. **Constraint:** In Step 3 the timeline is render-only — no `useState`, no client-side fetching, no event handlers. It receives data as props and renders it. The Client Component designation is purely forward-looking.
 
@@ -238,6 +273,58 @@ Display the Swedish labels matching the log buttons:
 | `lite` | Lite |
 
 Use a simple lookup map. Consider extracting the `intensities` constant from `src/app/(app)/log/page.tsx` to a shared location (e.g., `src/lib/constants.ts`) to avoid duplication.
+
+---
+
+## CSS housekeeping
+
+The shadcn init and theme migration left several issues in the configuration. These should be fixed at the start of Step 3 before writing new components, since the timeline uses semantic tokens (`border`, `bg-primary`, `bg-primary/20`) that depend on the CSS being correct.
+
+### Fix 1: `components.json` points to non-existent file (must fix)
+
+```json
+// WRONG — file does not exist
+"css": "src/app/globals-BAK.css"
+
+// CORRECT
+"css": "src/app/globals.css"
+```
+
+**Impact:** If `bunx shadcn add <component>` is run (e.g., to add a component in a future step), the CLI reads/writes this path. It will either fail silently or write to the wrong file. This must be fixed before any further `shadcn add` commands.
+
+### Fix 2: Remove duplicate `.dark` block entries (cleanup)
+
+The `.dark` block contains ~25 lines of shadows, fonts, radius, and tracking values that are identical copies of `:root`. These have no effect and add noise. Remove the following from `.dark`:
+
+- `--font-sans`, `--font-serif`, `--font-mono` (but see Fix 3 for `--font-sans` specifically)
+- `--radius`
+- All `--shadow-*` variables (`--shadow-x` through `--shadow-2xl`)
+- `--shadow-color`, `--shadow-opacity`, `--shadow-blur`, `--shadow-spread`
+- `--tracking-normal` (if present)
+
+### Fix 3: `.dark` `--font-sans` drops Geist font (must fix)
+
+In `:root`, `--font-sans` starts with `var(--font-geist-sans)`. In `.dark`, the Geist reference is absent — it falls back to system sans-serif. If dark mode is ever activated, the font would visually regress.
+
+**Fix:** Remove `--font-sans` from `.dark` entirely (per Fix 2, since the correct value is inherited from `:root`). This also resolves the issue, since the `:root` value includes Geist and will be inherited.
+
+### Fix 4: Sidebar tokens use hardcoded values instead of `var()` (cleanup)
+
+Two sidebar tokens in `:root` duplicate `--card`'s oklch value instead of referencing it:
+
+```css
+/* BEFORE — hardcoded, drifts if --card changes */
+--sidebar-primary-foreground: oklch(0.9764 0.013 71.3326);
+--sidebar-accent-foreground: oklch(0.9764 0.013 71.3326);
+
+/* AFTER — references --card, stays in sync */
+--sidebar-primary-foreground: var(--card);
+--sidebar-accent-foreground: var(--card);
+```
+
+### Not fixed in Step 3: dark mode token gaps
+
+The `.dark` block is missing overrides for `--info`, `--info-bg`, `--success`, `--success-bg`, `--warning`, `--warning-bg`. These custom status tokens will fall back to their light-theme values in dark mode. This is a known gap but does not affect Step 3 — the app has no dark mode toggle. If dark mode is added later, these tokens need proper dark values.
 
 ---
 
@@ -261,7 +348,7 @@ src/
         actions.ts              # UNCHANGED
         page.tsx                # MODIFY: import intensities from shared constants
       layout.tsx                # UNCHANGED
-    globals.css                 # MODIFIED: shadcn theme tokens (from init + migration)
+    globals.css                 # MODIFY: CSS housekeeping (remove .dark duplicates, fix sidebar tokens)
     layout.tsx                  # UNCHANGED
     page.tsx                    # UNCHANGED
   lib/
@@ -273,6 +360,7 @@ src/
     date.ts                     # NEW: timezone-aware date/time helpers
     movements.ts                # MODIFY: add getMovementsByDay, Movement type
   proxy.ts                      # UNCHANGED
+components.json                   # MODIFY: fix tailwind.css path to globals.css
 supabase/
   migrations/
     <timestamp>_create_movements.sql        # UNCHANGED (from Step 2)
@@ -353,7 +441,22 @@ Pure server-rendered HTML with no JS.
 
 **Decision: Option A.** The timeline needs to become interactive in Steps 6 (tap-to-delete) and 7 (scroll behavior, now marker). Starting as a Client Component avoids a refactor. The performance cost is negligible — it's a small component with no heavy dependencies.
 
-### 4. Shared intensity constants
+### 4. Timeline implementation: community component vs custom build
+
+**Option A: Adopt a community shadcn timeline component**
+Copy in Tourniercy/shadcn-timeline or timDeHof/shadcn-timeline and adapt it.
+
+**Option B: Custom build, borrowing techniques (chosen)**
+Build a purpose-built component, using the dot/line rendering techniques discovered during research.
+
+**Decision: Option B.** We evaluated three community components:
+- **Tourniercy/shadcn-timeline** — closest match, but designed for blog/event entries with Badge timestamps and responsive stacked layout. Uses pseudo-elements for dot/line. Needs `Badge` dependency. Has one hardcoded color (`before:bg-slate-300`).
+- **timDeHof/shadcn-timeline** — 3-column grid with status variants and Framer Motion animations. Well-built but requires `framer-motion` (~35kb gzip) and has 10 exported components — overkill for `[time] [dot] [label]`.
+- **shadcn Studio Timeline 5** — changelog-focused with sticky headers, version badges, and rich content areas. Uses explicit elements for dot/line with clean semantic tokens.
+
+All three solve problems we don't have (rich content, responsive column layout, animations). Our entries are one-liners. A custom ~30-line component with zero dependencies is simpler to build, own, and extend in Steps 6/9 than any of these would be to strip down. We borrow the best techniques: nested-span halo dot (from Studio T5), `w-px flex-1 border` connector (from Studio T5), and `group-last` line hiding (from Tourniercy).
+
+### 5. Shared intensity constants (unchanged)
 
 **Option A: Extract to `src/lib/constants.ts` (chosen)**
 Single source of truth for intensity values and labels. Export an `Intensity` type (`"mycket" | "mellan" | "lite"`) derived from the constant using `typeof intensities[number]["value"]`.
@@ -363,7 +466,7 @@ Each component defines its own list.
 
 **Decision: Option A.** The intensities are used in the log page buttons and the timeline labels. Extracting avoids drift. The constant is small (3 entries) and stable. The derived `Intensity` type gives compile-time safety throughout the codebase.
 
-### 5. Empty state handling
+### 6. Empty state handling
 
 **Option A: Inline message (chosen)**
 Show "Inga rörelser registrerade idag" centered in the page.
@@ -373,7 +476,7 @@ Show an empty-state illustration.
 
 **Decision: Option A.** Simple text message. Visual polish comes in Step 9. The message is in Swedish matching the rest of the UI.
 
-### 6. Date helper location
+### 7. Date helper location
 
 **Option A: `src/lib/date.ts` (chosen)**
 Dedicated module for timezone-aware date/time utilities.
@@ -383,7 +486,7 @@ Compute today's date and format times directly in the page.
 
 **Decision: Option A.** The date helpers are used by multiple components (History page for today's date, timeline for formatting times) and will be reused in Step 4 (carousel). A dedicated module keeps timezone logic centralized and testable.
 
-### 7. DST fall-back duplicate times
+### 8. DST fall-back duplicate times
 
 On DST fall-back days (October 25 2026 in Sweden), the hour 02:00–02:59 occurs twice — once in CEST (+02:00) and once in CET (+01:00). Two movements logged during these overlapping hours will display the same `HH:mm` timestamp on the timeline.
 
