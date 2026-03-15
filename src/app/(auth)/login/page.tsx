@@ -4,6 +4,16 @@ import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { LoginForm } from "./use-login-form";
 import { createClient } from "@/lib/supabase/client";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -53,22 +63,18 @@ export default function LoginPage() {
       </h1>
 
       {form.error && (
-        <div className='mb-4 rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive'>
-          {form.error}
-        </div>
+        <Alert variant='destructive' className='mb-4'>
+          <AlertDescription>{form.error}</AlertDescription>
+        </Alert>
       )}
 
       {form.phase === "email" ? (
         <form onSubmit={handleEmailSubmit} className='flex flex-col gap-4'>
-          <label
-            htmlFor='email'
-            className='text-sm font-medium text-foreground'
-          >
-            E-post
-          </label>
-          <input
+          <Label htmlFor='email'>E-post</Label>
+          <Input
             id='email'
-            type='email'
+            type='text'
+            inputMode='email'
             required
             autoFocus
             value={form.email}
@@ -77,51 +83,56 @@ export default function LoginPage() {
               kick();
             }}
             placeholder='din@email.se'
-            className='rounded-lg border border-input bg-card px-4 py-3 text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring'
+            className='h-12 bg-card'
           />
-          <button
+          <Button
             type='submit'
             disabled={form.loading}
-            className='rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
+            className='h-12 rounded-2xl px-6 text-lg font-semibold touch-manipulation active:scale-95 transition-transform'
           >
             {form.loading ? "Skickar..." : "Skicka kod"}
-          </button>
+          </Button>
         </form>
       ) : (
         <form onSubmit={handleOtpSubmit} className='flex flex-col gap-4'>
           <p className='text-sm text-muted-foreground text-center'>
             Ange koden som skickades till {form.email}
           </p>
-          <input
-            type='text'
-            inputMode='numeric'
-            pattern='[0-9]*'
+          <InputOTP
             maxLength={6}
-            required
-            autoFocus
+            pattern={REGEXP_ONLY_DIGITS}
             value={form.otp}
-            onChange={(e) => {
-              form.setOtp(e.target.value);
+            onChange={(value) => {
+              form.setOtp(value);
               kick();
             }}
-            placeholder='000000'
-            className='rounded-lg border border-input bg-card px-4 py-3 text-center text-2xl tracking-widest text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:ring-2 focus:ring-ring'
-          />
-          <button
+            autoFocus
+          >
+            <InputOTPGroup className='w-full justify-center'>
+              <InputOTPSlot index={0} className='size-12 text-lg bg-card' />
+              <InputOTPSlot index={1} className='size-12 text-lg bg-card' />
+              <InputOTPSlot index={2} className='size-12 text-lg bg-card' />
+              <InputOTPSlot index={3} className='size-12 text-lg bg-card' />
+              <InputOTPSlot index={4} className='size-12 text-lg bg-card' />
+              <InputOTPSlot index={5} className='size-12 text-lg bg-card' />
+            </InputOTPGroup>
+          </InputOTP>
+          <Button
             type='submit'
             disabled={form.loading}
-            className='rounded-2xl bg-primary px-6 py-4 text-lg font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
+            className='h-12 rounded-2xl px-6 text-lg font-semibold touch-manipulation active:scale-95 transition-transform'
           >
             {form.loading ? "Verifierar..." : "Logga in"}
-          </button>
-          <button
+          </Button>
+          <Button
             type='button'
+            variant='link'
             onClick={handleResend}
             disabled={!form.canResend || form.loading}
-            className='text-sm text-muted-foreground disabled:opacity-50'
+            className='text-sm text-muted-foreground'
           >
             {form.canResend ? "Skicka ny kod" : "Skicka ny kod (vänta...)"}
-          </button>
+          </Button>
         </form>
       )}
     </div>
