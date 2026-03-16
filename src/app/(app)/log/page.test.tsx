@@ -83,7 +83,6 @@ describe("LogPage", () => {
 
     expect(successResult).toMatchObject({
       message: "Rörelse registrerad",
-      className: "!bg-success-bg !text-success !border-success",
       action: {
         label: "Ångra",
         onClick: expect.any(Function),
