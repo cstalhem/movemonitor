@@ -202,15 +202,18 @@ The key changes:
 
 import { useCallback, useRef, useTransition } from "react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+import { intensities } from "@/lib/constants";
+import { Button } from "@/components/ui/button";
 import { logMovement, undoMovement } from "./actions";
 
-const DEBOUNCE_MS = 500;
+const buttonColorMap = {
+  "chart-1": "bg-chart-1 text-white hover:bg-chart-1/90",
+  "chart-2": "bg-chart-2 text-white hover:bg-chart-2/90",
+  "chart-3": "bg-chart-3 text-white hover:bg-chart-3/90",
+} as const;
 
-const intensities = [
-  { value: "mycket", label: "Mycket" },
-  { value: "mellan", label: "Mellan" },
-  { value: "lite", label: "Lite" },
-] as const;
+const DEBOUNCE_MS = 500;
 
 export default function LogPage() {
   const [isPending, startTransition] = useTransition();
@@ -231,15 +234,15 @@ export default function LogPage() {
           toast.dismiss(activeToastRef.current);
         }
 
-        activeToastRef.current = toast("Rorelse registrerad", {
+        activeToastRef.current = toast("Rörelse registrerad", {
           action: {
-            label: "Angra",
+            label: "Ångra",
             onClick: () => {
               startTransition(async () => {
                 try {
                   await undoMovement(id);
                 } catch {
-                  toast.error("Angra misslyckades");
+                  toast.error("Ångra misslyckades");
                 }
               });
             },
@@ -252,15 +255,19 @@ export default function LogPage() {
 
   return (
     <div className='flex flex-1 flex-col items-center justify-center gap-4 px-6'>
-      {intensities.map(({ value, label }) => (
-        <button
+      {intensities.map(({ value, label, icon: Icon, color }) => (
+        <Button
           key={value}
           onClick={() => handleLog(value)}
           disabled={isPending}
-          className='w-full max-w-sm rounded-2xl bg-primary px-6 py-6 text-xl font-semibold text-primary-foreground touch-manipulation active:scale-95 transition-transform disabled:opacity-50'
+          className={cn(
+            'w-full max-w-sm rounded-2xl px-6 py-6 text-xl font-semibold touch-manipulation active:scale-95 transition-transform',
+            buttonColorMap[color],
+          )}
         >
+          <Icon className='size-6' />
           {label}
-        </button>
+        </Button>
       ))}
     </div>
   );
@@ -273,7 +280,7 @@ export default function LogPage() {
 
 **Toast inside `startTransition`:** The toast is shown after `logMovement` completes, inside the transition. This means the toast only appears after the movement is actually persisted. If the server action fails, no toast is shown — the user sees the `isPending` state (disabled buttons) and the error propagates naturally.
 
-**Undo calls `startTransition` with error handling:** The undo action is wrapped in `startTransition` with a try/catch. On success, the movement is deleted and Sonner auto-dismisses the toast. On failure (network error, server error), a `toast.error("Angra misslyckades")` is shown so the user knows the undo didn't work. The `startTransition` wrapper also shows the pending state on the log buttons while the delete is in progress, preventing the user from logging a new movement while the undo is being processed.
+**Undo calls `startTransition` with error handling:** The undo action is wrapped in `startTransition` with a try/catch. On success, the movement is deleted and Sonner auto-dismisses the toast. On failure (network error, server error), a `toast.error("Ångra misslyckades")` is shown so the user knows the undo didn't work. The `startTransition` wrapper also shows the pending state on the log buttons while the delete is in progress, preventing the user from logging a new movement while the undo is being processed.
 
 **No undo-of-undo:** Once the user taps undo, the movement is deleted. There is no way to redo the movement — the undo toast dismisses on action click (Sonner's default behavior). This matches the implementation plan: "Undo does not survive page refresh or navigation."
 
@@ -292,6 +299,7 @@ src/
   components/
     ui/
       button.tsx                        # UNCHANGED
+      skeleton.tsx                      # UNCHANGED (from Step 4)
       sonner.tsx                        # INSTALLED+MODIFIED: shadcn Sonner (next-themes removed)
   app/
     (auth)/                             # UNCHANGED
@@ -299,7 +307,12 @@ src/
       components/
         nav-bar.tsx                     # UNCHANGED
       history/
-        page.tsx                        # UNCHANGED (stub or Step 3/4 implementation)
+        day-carousel.tsx                # UNCHANGED (from Step 4)
+        day-timeline.tsx                # UNCHANGED (from Step 4)
+        page.tsx                        # UNCHANGED (from Step 4)
+        timeline.tsx                    # UNCHANGED (from Step 3/4)
+        timeline.test.tsx               # UNCHANGED (from Step 3)
+        timeline-skeleton.tsx           # UNCHANGED (from Step 4)
       log/
         actions.ts                      # MODIFY: add undoMovement action
         page.tsx                        # MODIFY: capture id, show undo toast
@@ -311,6 +324,11 @@ src/
     supabase/
       client.ts                         # UNCHANGED
       server.ts                         # UNCHANGED
+    constants.ts                        # UNCHANGED (from Step 3)
+    date.ts                             # UNCHANGED (from Step 3/4)
+    date.test.ts                        # UNCHANGED (from Step 3/4)
+    day-counts.ts                       # UNCHANGED (from Step 4)
+    day-counts.test.ts                  # UNCHANGED (from Step 4)
     movements.ts                        # MODIFY: add deleteMovement
     movements.test.ts                   # MODIFY: add deleteMovement tests
     utils.ts                            # UNCHANGED
@@ -323,7 +341,7 @@ src/
 
 ### Unit tests: `deleteMovement` (`src/lib/movements.test.ts`)
 
-These follow the existing test structure — mock the Supabase client, verify the query builder calls.
+These follow the existing test structure — mock the Supabase client, verify the query builder calls. **Note:** The existing mock setup uses separate chains for read (`.select().gte().lt().order()`) and create (`.insert().select().single()`). The delete chain (`.delete().eq()`) needs a new mock chain added to the `mockFrom` return value.
 
 1. **`deleteMovement` calls Supabase delete with correct id** — verify `.from("movements").delete().eq("id", id)` is called
 2. **`deleteMovement` throws on Supabase error** — mock returns an error, verify it propagates
@@ -348,17 +366,17 @@ Use `// @vitest-environment jsdom` docblock. These tests verify the toast integr
 
 ### Integration: manual E2E verification
 
-1. Tap "Mycket" → toast appears at the top with "Rorelse registrerad" and an "Angra" button
+1. Tap "Mycket" → toast appears at the top with "Rörelse registrerad" and an "Ångra" button
 2. Wait 5 seconds → toast auto-dismisses with a smooth exit animation
-3. Tap "Mycket", then tap "Angra" before timeout → movement is deleted, toast dismisses
+3. Tap "Mycket", then tap "Ångra" before timeout → movement is deleted, toast dismisses
 4. Verify deletion: navigate to Historik → the undone movement does not appear
 5. Tap "Mycket" twice quickly → only one toast is visible (the second, for the latest movement)
-6. Tap "Angra" on the second toast → only the second movement is deleted, the first remains
+6. Tap "Ångra" on the second toast → only the second movement is deleted, the first remains
 7. Tap "Mycket", navigate to Historik → toast remains visible and functional
-8. Tap "Angra" while on Historik → movement is deleted, timeline updates after undo completes (revalidatePath triggers immediate UI update)
+8. Tap "Ångra" while on Historik → movement is deleted, timeline updates after undo completes (revalidatePath triggers immediate UI update)
 9. Swipe the toast upward → toast dismisses (swipe-to-dismiss, no undo triggered)
 10. Refresh the page while toast is showing → toast disappears (expected — undo does not survive refresh)
-11. Simulate undo failure (e.g., airplane mode) → error toast "Angra misslyckades" appears
+11. Simulate undo failure (e.g., airplane mode) → error toast "Ångra misslyckades" appears
 
 ---
 
@@ -428,4 +446,4 @@ Accept the dead dependency (~3KB gzipped).
 
 ### 7. Toast message language: Swedish vs English
 
-**Decision: Swedish.** The app UI is in Swedish ("Logga", "Historik", "Mycket", "Mellan", "Lite"). The toast should match: "Rorelse registrerad" (movement registered) with "Angra" (undo) as the action label. No special characters (a/o instead of a with ring/o with umlaut) to match the existing pattern in the codebase (e.g., "Inga rorelser registrerade" in the history empty state from Step 3).
+**Decision: Swedish with proper characters.** The app UI is in Swedish ("Logga", "Historik", "Mycket", "Mellan", "Lite") and uses proper Swedish characters where appropriate (e.g., "Inga rörelser registrerade" in the history empty state, "Igår" in the carousel label). The toast should match: "Rörelse registrerad" (movement registered) with "Ångra" (undo) as the action label, and "Ångra misslyckades" for the error toast.

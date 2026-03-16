@@ -16,9 +16,10 @@ Add the ability to delete any movement from the timeline. Tapping a timeline ent
 
 Steps 1-5 are complete:
 
-- Timeline component exists (`src/app/(app)/history/timeline.tsx`) — a Client Component receiving `Movement[]` as props, rendering `[time] [dot] [label]` rows
-- `DayTimeline` is an async Server Component wrapping `<Timeline>` inside a `Suspense` boundary
+- Timeline component exists (`src/app/(app)/history/timeline.tsx`) — a Client Component receiving `Movement[]` as props, rendering `<ol>` with `<li>` entries: time column (`w-14 text-lg tabular-nums`), intensity-colored dot column (`size-7` with Lucide icon + `chart-1/2/3` color tokens via `colorMap`), and label column (`ml-4 text-xl`)
+- `DayTimeline` is an async Server Component wrapping `<Timeline>` inside `<Suspense key={selectedDay}>`
 - `DayCarousel` shows stacked bar counts, driven by `searchParams`
+- `intensities` in `src/lib/constants.ts` includes `icon` (Lucide component) and `color` (`"chart-1"` etc.) per intensity
 - `deleteMovement(id)` exists in `src/lib/movements.ts` — RLS-scoped, idempotent
 - Sonner toast infrastructure is installed and configured in the `(app)` layout
 - `cn()` from `@/lib/utils` for conditional className composition
@@ -121,7 +122,7 @@ These are mutually exclusive in practice: when the user taps "Radera" in the pop
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import { formatTime } from "@/lib/date";
-import { intensityLabel } from "@/lib/constants";
+import { intensities } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 import { type Movement } from "@/lib/movements";
 import {
@@ -141,6 +142,12 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { deleteTimelineMovement } from "./actions";
+
+const colorMap = {
+  "chart-1": { bg: "bg-chart-1/20", text: "text-chart-1", fill: "bg-chart-1" },
+  "chart-2": { bg: "bg-chart-2/20", text: "text-chart-2", fill: "bg-chart-2" },
+  "chart-3": { bg: "bg-chart-3/20", text: "text-chart-3", fill: "bg-chart-3" },
+} as const;
 
 type Props = {
   movements: Movement[];
@@ -174,7 +181,14 @@ export function Timeline({ movements }: Props) {
   return (
     <>
       <div className="flex flex-col">
-        {movements.map((m, i) => (
+        {movements.map((m, i) => {
+          const intensity = intensities.find((int) => int.value === m.intensity);
+          const label = intensity?.label;
+          const Icon = intensity?.icon;
+          const isLast = i === movements.length - 1;
+          const colorClasses = colorMap[intensity?.color ?? "chart-1"];
+
+          return (
           <Popover
             key={m.id}
             open={selectedId === m.id}
@@ -184,29 +198,31 @@ export function Timeline({ movements }: Props) {
               <button
                 type="button"
                 className={cn(
-                  "group flex items-start gap-3 py-4 text-left",
+                  "flex gap-3 text-left",
                   "active:bg-muted/50 transition-colors",
                   isPending && "pointer-events-none opacity-50"
                 )}
               >
                 {/* Time */}
-                <span className="w-12 shrink-0 text-sm text-muted-foreground tabular-nums pt-0.5">
+                <span className="w-14 shrink-0 leading-7 text-lg tabular-nums text-muted-foreground">
                   {formatTime(m.occurred_at)}
                 </span>
 
                 {/* Dot + connector */}
-                <span className="flex flex-col items-center">
-                  <span className="flex size-4.5 items-center justify-center rounded-full bg-primary/20">
-                    <span className="size-3 rounded-full bg-primary" />
+                <div className="flex flex-col items-center">
+                  <span className={cn("flex size-7 items-center justify-center rounded-full border border-current/20", colorClasses.bg, colorClasses.text)}>
+                    {Icon ? (
+                      <Icon className={cn("size-4", colorClasses.text)} />
+                    ) : (
+                      <span className={cn("size-4 rounded-full", colorClasses.fill)} />
+                    )}
                   </span>
-                  {i < movements.length - 1 && (
-                    <span className="w-px flex-1 border" />
-                  )}
-                </span>
+                  {!isLast && <span className="w-px flex-1 bg-border" />}
+                </div>
 
                 {/* Label */}
-                <span className="text-sm text-foreground pt-0.5">
-                  {intensityLabel(m.intensity)}
+                <span className={cn("ml-4 pb-8 leading-7 text-xl text-foreground", isLast && "pb-0")}>
+                  {label}
                 </span>
               </button>
             </PopoverTrigger>
@@ -225,7 +241,8 @@ export function Timeline({ movements }: Props) {
               </Button>
             </PopoverContent>
           </Popover>
-        ))}
+          );
+        })}
       </div>
 
       {/* Confirmation dialog — sibling to all popovers, not nested */}
@@ -235,9 +252,9 @@ export function Timeline({ movements }: Props) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Radera rorelse?</AlertDialogTitle>
+            <AlertDialogTitle>Radera rörelse?</AlertDialogTitle>
             <AlertDialogDescription>
-              Rorelsen tas bort permanent.
+              Rörelsen tas bort permanent.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -255,7 +272,7 @@ export function Timeline({ movements }: Props) {
 
 ### Key implementation details
 
-**Timeline entries become `<button>` elements.** In Step 3, each entry is a `<div>`. Step 6 changes them to `<button type="button">` wrapped in `<PopoverTrigger asChild>`. This gives us:
+**Timeline entries become `<button>` elements.** In Step 3/4, each entry is a `<li>` inside an `<ol>`. Step 6 wraps the entry content in a `<button type="button">` inside `<PopoverTrigger asChild>`. This gives us:
 - Tap-to-open behavior (Radix handles the toggle)
 - Keyboard accessibility (Space/Enter to open, Escape to close)
 - Correct semantic meaning (interactive element)
@@ -266,7 +283,7 @@ export function Timeline({ movements }: Props) {
 
 **`isPending` also disables timeline entries** while a delete is in flight via `pointer-events-none opacity-50`. In practice this is redundant while the modal AlertDialog is open (it blocks background interaction), but it provides a visual signal and protects against edge cases where the dialog might close before the transition completes.
 
-**Single AlertDialog instance.** There is one `AlertDialog` at the bottom of the component, controlled by `confirmId`. This avoids rendering N dialog instances (one per entry). The dialog content is generic ("Radera rorelse?") — it doesn't need to reference the specific movement because the user just tapped it.
+**Single AlertDialog instance.** There is one `AlertDialog` at the bottom of the component, controlled by `confirmId`. This avoids rendering N dialog instances (one per entry). The dialog content is generic ("Radera rörelse?") — it doesn't need to reference the specific movement because the user just tapped it.
 
 **Popover positioning: `side="right"`** places the popover to the right of the tapped entry. On a mobile screen, if there isn't enough room on the right, Radix automatically flips to the left (or above/below) via its `avoidCollisions` behavior (enabled by default). The `w-auto p-2` keeps the popover compact — it contains only a single "Radera" button.
 
@@ -335,6 +352,7 @@ src/
       alert-dialog.tsx                  # INSTALLED: shadcn AlertDialog
       button.tsx                        # UNCHANGED
       popover.tsx                       # INSTALLED: shadcn Popover
+      skeleton.tsx                      # UNCHANGED (from Step 4)
       sonner.tsx                        # UNCHANGED (from Step 5)
   app/
     (auth)/                             # UNCHANGED
@@ -361,7 +379,9 @@ src/
       server.ts                         # UNCHANGED
     constants.ts                        # UNCHANGED (from Step 3)
     date.ts                             # UNCHANGED (from Step 3/4)
+    date.test.ts                        # UNCHANGED (from Step 3/4)
     day-counts.ts                       # UNCHANGED (from Step 4)
+    day-counts.test.ts                  # UNCHANGED (from Step 4)
     movements.ts                        # UNCHANGED (has deleteMovement from Step 5)
     movements.test.ts                   # UNCHANGED
     utils.ts                            # UNCHANGED
@@ -382,7 +402,7 @@ src/
 Use `// @vitest-environment jsdom` docblock. These tests extend the existing Step 3 tests with interactivity:
 
 1. **Tapping an entry opens the popover** — render with movements, simulate click on an entry, verify the popover content is visible (the "Radera" button)
-2. **Tapping "Radera" in the popover opens the confirmation dialog** — simulate popover open, click the delete button, verify the AlertDialog content appears ("Radera rorelse?")
+2. **Tapping "Radera" in the popover opens the confirmation dialog** — simulate popover open, click the delete button, verify the AlertDialog content appears ("Radera rörelse?")
 3. **Popover closes when dialog opens** — simulate the full flow, verify the popover content is no longer visible when the dialog is open
 4. **Tapping "Avbryt" closes the dialog without deleting** — simulate through to the dialog, click cancel, verify `deleteTimelineMovement` was not called and the dialog closes
 5. **Tapping "Radera" in the dialog calls the delete action** — simulate the full flow through to confirm, verify `deleteTimelineMovement` is called with the correct movement id
@@ -397,7 +417,7 @@ Use `// @vitest-environment jsdom` docblock. These tests extend the existing Ste
 
 1. Navigate to Historik with logged movements → tap a timeline entry → popover appears with "Radera" button
 2. Tap outside the popover → popover closes, nothing happens
-3. Tap entry again → popover opens → tap "Radera" → confirmation dialog appears with "Radera rorelse?" and two buttons
+3. Tap entry again → popover opens → tap "Radera" → confirmation dialog appears with "Radera rörelse?" and two buttons
 4. Tap "Avbryt" → dialog closes, movement still visible
 5. Repeat: tap entry → "Radera" → "Radera" in dialog → movement disappears from timeline
 6. Verify the carousel bar chart updates (the bar for that day should shrink or disappear)
@@ -485,14 +505,13 @@ Import and call the same action.
 
 ### 8. Dialog text language
 
-**Decision: Swedish.** Consistent with the rest of the UI:
-- Dialog title: "Radera rorelse?" (Delete movement?)
-- Dialog description: "Rorelsen tas bort permanent." (The movement is removed permanently.)
+**Decision: Swedish with proper characters.** Consistent with the rest of the UI (which uses Swedish characters: "Inga rörelser registrerade", "Igår"):
+- Dialog title: "Radera rörelse?" (Delete movement?)
+- Dialog description: "Rörelsen tas bort permanent." (The movement is removed permanently.)
 - Confirm button: "Radera" (Delete)
 - Cancel button: "Avbryt" (Cancel)
 - Error toast: "Radering misslyckades" (Deletion failed)
-
-No special characters (o instead of o with umlaut, a instead of a with ring) to match the existing pattern in the codebase.
+- Loading state: "Raderar..." (Deleting...)
 
 ### 9. Popover trigger: wrapping entry in button vs onClick handler
 
