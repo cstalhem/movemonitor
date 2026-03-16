@@ -65,3 +65,9 @@ export async function createMovement(
   if (error) throw error;
   return { id: data.id };
 }
+
+export async function deleteMovement(id: string): Promise<void> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("movements").delete().eq("id", id);
+  if (error) throw error;
+}

@@ -11,9 +11,13 @@ const mockLt = vi.fn().mockReturnValue({ order: mockOrder });
 const mockGte = vi.fn().mockReturnValue({ lt: mockLt });
 const mockSelectRead = vi.fn().mockReturnValue({ gte: mockGte });
 
+const mockEqDelete = vi.fn();
+const mockDelete = vi.fn().mockReturnValue({ eq: mockEqDelete });
+
 const mockFrom = vi.fn().mockReturnValue({
   insert: mockInsert,
   select: mockSelectRead,
+  delete: mockDelete,
 });
 const mockGetUser = vi.fn();
 
@@ -208,5 +212,35 @@ describe("getDayCounts", () => {
 
     const { getDayCounts } = await import("./movements");
     await expect(getDayCounts("2026-03-02", "2026-03-15")).rejects.toThrow();
+  });
+});
+
+describe("deleteMovement", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockEqDelete.mockResolvedValue({ error: null });
+  });
+
+  it("calls Supabase delete with correct id", async () => {
+    const { deleteMovement } = await import("./movements");
+    await deleteMovement("test-uuid");
+
+    expect(mockFrom).toHaveBeenCalledWith("movements");
+    expect(mockDelete).toHaveBeenCalled();
+    expect(mockEqDelete).toHaveBeenCalledWith("id", "test-uuid");
+  });
+
+  it("throws on Supabase error", async () => {
+    mockEqDelete.mockResolvedValue({ error: { message: "delete failed" } });
+
+    const { deleteMovement } = await import("./movements");
+    await expect(deleteMovement("test-uuid")).rejects.toThrow();
+  });
+
+  it("succeeds when no rows matched (idempotent)", async () => {
+    mockEqDelete.mockResolvedValue({ error: null });
+
+    const { deleteMovement } = await import("./movements");
+    await expect(deleteMovement("test-uuid")).resolves.toBeUndefined();
   });
 });
