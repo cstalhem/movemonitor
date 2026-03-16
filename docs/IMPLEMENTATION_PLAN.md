@@ -89,7 +89,7 @@ Build the History screen with a timeline for today.
 
 ---
 
-## Step 4: Day carousel
+## Step 4: Day carousel (DONE)
 
 Add the day-selection bar chart above the timeline.
 
