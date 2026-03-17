@@ -25,6 +25,11 @@ export function DayCarousel({
   const isFetching = useRef(false);
 
   const [dayCounts, setDayCounts] = useState(initialDayCounts);
+  const [prevInitial, setPrevInitial] = useState(initialDayCounts);
+  if (initialDayCounts !== prevInitial) {
+    setPrevInitial(initialDayCounts);
+    setDayCounts(initialDayCounts);
+  }
   const [loadedRange, setLoadedRange] = useState({
     oldest: initialDayCounts[0]?.day ?? today,
     newest: initialDayCounts[initialDayCounts.length - 1]?.day ?? today,

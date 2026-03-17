@@ -123,6 +123,27 @@ describe("DayCarousel", () => {
     expect(segments).toHaveLength(0);
   });
 
+  it("updates legend when dayCounts prop changes (e.g. after delete)", () => {
+    const { rerender } = render(
+      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+    );
+    // Before: selected day (2026-03-15) has mycket:1, mellan:4, lite:2
+    expect(screen.getByText("4")).toBeInTheDocument();
+
+    // Simulate server re-render after deleting one "mellan" movement
+    const updatedCounts: DayCount[] = [
+      { day: "2026-03-13", mycket: 3, mellan: 2, lite: 1 },
+      { day: "2026-03-14", mycket: 0, mellan: 0, lite: 0 },
+      { day: "2026-03-15", mycket: 1, mellan: 3, lite: 2 },
+    ];
+    rerender(
+      <DayCarousel dayCounts={updatedCounts} selectedDay={TODAY} today={TODAY} />,
+    );
+    // After: mellan should be 3, not 4
+    expect(screen.getByText("3")).toBeInTheDocument();
+    expect(screen.queryByText("4")).toBeNull();
+  });
+
   it("scales bar heights proportionally", () => {
     render(
       <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
