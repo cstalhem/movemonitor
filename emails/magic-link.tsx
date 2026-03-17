@@ -36,7 +36,9 @@ export default function MagicLink() {
           padding: "40px 0",
         }}
       >
-        <Container style={{ maxWidth: "480px", margin: "0 auto", padding: "0 16px" }}>
+        <Container
+          style={{ maxWidth: "480px", margin: "0 auto", padding: "0 16px" }}
+        >
           <Heading
             as="h1"
             style={{
@@ -97,7 +99,7 @@ export default function MagicLink() {
                   color: colors.foreground,
                   letterSpacing: "8px",
                   fontFamily:
-                    'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+                    "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
                   margin: 0,
                 }}
               >

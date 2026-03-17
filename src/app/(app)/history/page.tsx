@@ -30,7 +30,7 @@ export default async function HistoryPage({
   const dayCounts = await getDayCounts(startDay, today);
 
   return (
-    <div className='flex flex-1 flex-col pt-2'>
+    <div className="flex flex-1 flex-col pt-2">
       <DayCarousel
         key={startDay}
         dayCounts={dayCounts}

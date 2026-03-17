@@ -46,7 +46,7 @@ export async function getDayCounts(
 }
 
 export async function createMovement(
-  intensity: string
+  intensity: string,
 ): Promise<{ id: string }> {
   const supabase = await createClient();
 

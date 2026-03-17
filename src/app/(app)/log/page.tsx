@@ -50,25 +50,26 @@ export default function LogPage() {
           }),
           error: "Kunde inte registrera",
         });
-        activeToastRef.current = typeof toastId === "object" ? undefined : toastId;
+        activeToastRef.current =
+          typeof toastId === "object" ? undefined : toastId;
       });
     },
     [startTransition],
   );
 
   return (
-    <div className='flex flex-1 flex-col items-center justify-center gap-4 px-6'>
+    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
       {intensities.map(({ value, label, icon: Icon, color }) => (
         <Button
           key={value}
           onClick={() => handleLog(value)}
           disabled={isPending}
           className={cn(
-            'w-full max-w-sm rounded-2xl px-6 py-6 text-xl font-semibold touch-manipulation active:scale-95 transition-transform',
+            "w-full max-w-sm touch-manipulation rounded-2xl px-6 py-6 text-xl font-semibold transition-transform active:scale-95",
             buttonColorMap[color],
           )}
         >
-          <Icon className='size-6' />
+          <Icon className="size-6" />
           {label}
         </Button>
       ))}

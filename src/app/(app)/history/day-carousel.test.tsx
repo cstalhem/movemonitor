@@ -78,7 +78,11 @@ const sampleCounts: DayCount[] = [
 describe("DayCarousel", () => {
   it("renders a bar for each day in dayCounts", () => {
     render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     const bars = screen.getAllByTestId("stacked-bar");
     expect(bars).toHaveLength(3);
@@ -86,7 +90,11 @@ describe("DayCarousel", () => {
 
   it("shows a fixed center indicator above the bars", () => {
     render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     const dot = screen.getByTestId("selected-indicator");
     expect(dot).toBeInTheDocument();
@@ -94,14 +102,22 @@ describe("DayCarousel", () => {
 
   it("shows the correct date label for the selected day", () => {
     render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     expect(screen.getByText("Idag")).toBeInTheDocument();
   });
 
   it("shows legend with per-intensity counts for selected day", () => {
     render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     // Selected day (2026-03-15) has mycket:1, mellan:4, lite:2
     expect(screen.getByText("Mycket")).toBeInTheDocument();
@@ -114,7 +130,11 @@ describe("DayCarousel", () => {
 
   it("renders no colored segments for empty days", () => {
     render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay="2026-03-14" today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay="2026-03-14"
+        today={TODAY}
+      />,
     );
     const bars = screen.getAllByTestId("stacked-bar");
     // The empty day (index 1, 2026-03-14) should have no segment children
@@ -125,7 +145,11 @@ describe("DayCarousel", () => {
 
   it("updates legend when dayCounts prop changes (e.g. after delete)", () => {
     const { rerender } = render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     // Before: selected day (2026-03-15) has mycket:1, mellan:4, lite:2
     expect(screen.getByText("4")).toBeInTheDocument();
@@ -137,7 +161,11 @@ describe("DayCarousel", () => {
       { day: "2026-03-15", mycket: 1, mellan: 3, lite: 2 },
     ];
     rerender(
-      <DayCarousel dayCounts={updatedCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={updatedCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     // After: mellan should be 3, not 4
     expect(screen.getByText("3")).toBeInTheDocument();
@@ -146,7 +174,11 @@ describe("DayCarousel", () => {
 
   it("scales bar heights proportionally", () => {
     render(
-      <DayCarousel dayCounts={sampleCounts} selectedDay={TODAY} today={TODAY} />,
+      <DayCarousel
+        dayCounts={sampleCounts}
+        selectedDay={TODAY}
+        today={TODAY}
+      />,
     );
     const bars = screen.getAllByTestId("bar-stack");
     // Day 1 total = 6 (max), Day 3 total = 7 (max). maxTotal = 7

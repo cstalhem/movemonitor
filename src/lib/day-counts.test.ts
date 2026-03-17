@@ -31,9 +31,24 @@ describe("groupByDay", () => {
     ];
     const result = groupByDay(rows, "2026-03-13", "2026-03-15");
     expect(result).toHaveLength(3);
-    expect(result[0]).toEqual({ day: "2026-03-13", mycket: 1, mellan: 0, lite: 0 });
-    expect(result[1]).toEqual({ day: "2026-03-14", mycket: 0, mellan: 1, lite: 0 });
-    expect(result[2]).toEqual({ day: "2026-03-15", mycket: 0, mellan: 0, lite: 1 });
+    expect(result[0]).toEqual({
+      day: "2026-03-13",
+      mycket: 1,
+      mellan: 0,
+      lite: 0,
+    });
+    expect(result[1]).toEqual({
+      day: "2026-03-14",
+      mycket: 0,
+      mellan: 1,
+      lite: 0,
+    });
+    expect(result[2]).toEqual({
+      day: "2026-03-15",
+      mycket: 0,
+      mellan: 0,
+      lite: 1,
+    });
   });
 
   it("fills missing days with zeros", () => {
@@ -43,19 +58,32 @@ describe("groupByDay", () => {
       { intensity: "lite", occurred_at: "2026-03-15T14:00:00Z" },
     ];
     const result = groupByDay(rows, "2026-03-13", "2026-03-15");
-    expect(result[1]).toEqual({ day: "2026-03-14", mycket: 0, mellan: 0, lite: 0 });
+    expect(result[1]).toEqual({
+      day: "2026-03-14",
+      mycket: 0,
+      mellan: 0,
+      lite: 0,
+    });
   });
 
   it("assigns midnight-boundary rows to correct Stockholm date", () => {
     // 2026-03-14 in CET: midnight Stockholm = 2026-03-13T23:00:00Z
     // So an event at 2026-03-13T23:30:00Z is actually 2026-03-14 00:30 Stockholm time
-    const rows = [
-      { intensity: "mellan", occurred_at: "2026-03-13T23:30:00Z" },
-    ];
+    const rows = [{ intensity: "mellan", occurred_at: "2026-03-13T23:30:00Z" }];
     const result = groupByDay(rows, "2026-03-13", "2026-03-14");
     // Should be counted in 2026-03-14 (Stockholm time), not 2026-03-13
-    expect(result[0]).toEqual({ day: "2026-03-13", mycket: 0, mellan: 0, lite: 0 });
-    expect(result[1]).toEqual({ day: "2026-03-14", mycket: 0, mellan: 1, lite: 0 });
+    expect(result[0]).toEqual({
+      day: "2026-03-13",
+      mycket: 0,
+      mellan: 0,
+      lite: 0,
+    });
+    expect(result[1]).toEqual({
+      day: "2026-03-14",
+      mycket: 0,
+      mellan: 1,
+      lite: 0,
+    });
   });
 
   it("handles single-day range", () => {

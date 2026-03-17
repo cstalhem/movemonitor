@@ -170,24 +170,24 @@ export function DayCarousel({
   }, [loadedRange.oldest]);
 
   return (
-    <div className='flex flex-col py-3'>
+    <div className="flex flex-col py-3">
       {/* Date label — above bars, updates live during scroll */}
-      <p className='text-center font-medium text-foreground'>
+      <p className="text-foreground text-center font-medium">
         {formatDayLabel(centeredDay, today)}
       </p>
 
       {/* Center marker — triangle + fading border */}
-      <div className='relative flex items-center justify-center text-primary mb-4'>
+      <div className="text-primary relative mb-4 flex items-center justify-center">
         <div
-          className='absolute inset-x-0 top-0.5 h-px'
+          className="absolute inset-x-0 top-0.5 h-px"
           style={{
             background:
               "linear-gradient(to right, transparent, currentColor 40%, currentColor 60%, transparent)",
           }}
         />
         <div
-          className='relative text-sm leading-none'
-          data-testid='selected-indicator'
+          className="relative text-sm leading-none"
+          data-testid="selected-indicator"
         >
           ▼
         </div>
@@ -196,33 +196,33 @@ export function DayCarousel({
       {/* Bar chart strip */}
       <div
         ref={containerRef}
-        className='flex items-end overflow-x-auto mb-1 snap-x snap-mandatory scrollbar-hide gap-1 px-[calc(50%-1rem)]'
+        className="scrollbar-hide mb-1 flex snap-x snap-mandatory items-end gap-1 overflow-x-auto px-[calc(50%-1rem)]"
       >
-        <div ref={sentinelRef} className='shrink-0 w-px' />
+        <div ref={sentinelRef} className="w-px shrink-0" />
         {dayCounts.map((dc) => (
           <StackedBar key={dc.day} dayCount={dc} maxTotal={maxTotal} />
         ))}
       </div>
 
       {/* Legend */}
-      <div className='flex justify-center gap-4 w-full mb-4 py-4 border-t'>
-        <div className='flex flex-col items-center w-1/6'>
-          <p className='text-2xl font-bold text-chart-1'>
+      <div className="mb-4 flex w-full justify-center gap-4 border-t py-4">
+        <div className="flex w-1/6 flex-col items-center">
+          <p className="text-chart-1 text-2xl font-bold">
             {centeredCount.mycket}
           </p>
-          <p className='text-sm text-muted-foreground'>Mycket</p>
+          <p className="text-muted-foreground text-sm">Mycket</p>
         </div>
-        <div className='flex flex-col items-center w-1/6'>
-          <p className='text-2xl font-bold text-chart-2'>
+        <div className="flex w-1/6 flex-col items-center">
+          <p className="text-chart-2 text-2xl font-bold">
             {centeredCount.mellan}
           </p>
-          <p className='text-sm text-muted-foreground'>Mellan</p>
+          <p className="text-muted-foreground text-sm">Mellan</p>
         </div>
-        <div className='flex flex-col items-center w-1/6'>
-          <p className='text-2xl font-bold text-chart-3'>
+        <div className="flex w-1/6 flex-col items-center">
+          <p className="text-chart-3 text-2xl font-bold">
             {centeredCount.lite}
           </p>
-          <p className='text-sm text-muted-foreground'>Lite</p>
+          <p className="text-muted-foreground text-sm">Lite</p>
         </div>
       </div>
     </div>
@@ -263,44 +263,44 @@ function StackedBar({
 
   return (
     <div
-      className='flex flex-col items-center w-8 snap-center shrink-0'
+      className="flex w-8 shrink-0 snap-center flex-col items-center"
       data-day={dayCount.day}
-      data-testid='stacked-bar'
+      data-testid="stacked-bar"
     >
       <div
-        className='flex flex-col justify-end w-full'
+        className="flex w-full flex-col justify-end"
         style={{ height: MAX_HEIGHT }}
       >
         {total > 0 ? (
           <div
-            className='flex flex-col w-full rounded-sm overflow-hidden'
+            className="flex w-full flex-col overflow-hidden rounded-sm"
             style={{ height: barHeight }}
-            data-testid='bar-stack'
+            data-testid="bar-stack"
           >
             {dayCount.mycket > 0 && (
               <div
-                className='bg-chart-1'
+                className="bg-chart-1"
                 style={{ flexGrow: dayCount.mycket }}
-                data-testid='bar-segment'
+                data-testid="bar-segment"
               />
             )}
             {dayCount.mellan > 0 && (
               <div
-                className='bg-chart-2'
+                className="bg-chart-2"
                 style={{ flexGrow: dayCount.mellan }}
-                data-testid='bar-segment'
+                data-testid="bar-segment"
               />
             )}
             {dayCount.lite > 0 && (
               <div
-                className='bg-chart-3'
+                className="bg-chart-3"
                 style={{ flexGrow: dayCount.lite }}
-                data-testid='bar-segment'
+                data-testid="bar-segment"
               />
             )}
           </div>
         ) : (
-          <div data-testid='bar-stack' style={{ height: 0 }} />
+          <div data-testid="bar-stack" style={{ height: 0 }} />
         )}
       </div>
     </div>
