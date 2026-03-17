@@ -57,24 +57,24 @@ export default function LoginPage() {
   };
 
   return (
-    <div className='w-full max-w-sm'>
-      <h1 className='text-2xl font-bold text-foreground mb-8 text-center'>
+    <div className="w-full max-w-sm">
+      <h1 className="text-foreground mb-8 text-center text-2xl font-bold">
         Movemonitor
       </h1>
 
       {form.error && (
-        <Alert variant='destructive' className='mb-4'>
+        <Alert variant="destructive" className="mb-4">
           <AlertDescription>{form.error}</AlertDescription>
         </Alert>
       )}
 
       {form.phase === "email" ? (
-        <form onSubmit={handleEmailSubmit} className='flex flex-col gap-4'>
-          <Label htmlFor='email'>E-post</Label>
+        <form onSubmit={handleEmailSubmit} className="flex flex-col gap-4">
+          <Label htmlFor="email">E-post</Label>
           <Input
-            id='email'
-            type='text'
-            inputMode='email'
+            id="email"
+            type="text"
+            inputMode="email"
             required
             autoFocus
             value={form.email}
@@ -82,20 +82,20 @@ export default function LoginPage() {
               form.setEmail(e.target.value);
               kick();
             }}
-            placeholder='din@email.se'
-            className='h-12 bg-card'
+            placeholder="din@email.se"
+            className="bg-card h-12"
           />
           <Button
-            type='submit'
+            type="submit"
             disabled={form.loading}
-            className='h-12 rounded-2xl px-6 text-lg font-semibold touch-manipulation active:scale-95 transition-transform'
+            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold transition-transform active:scale-95"
           >
             {form.loading ? "Skickar..." : "Skicka kod"}
           </Button>
         </form>
       ) : (
-        <form onSubmit={handleOtpSubmit} className='flex flex-col gap-4'>
-          <p className='text-sm text-muted-foreground text-center'>
+        <form onSubmit={handleOtpSubmit} className="flex flex-col gap-4">
+          <p className="text-muted-foreground text-center text-sm">
             Ange koden som skickades till {form.email}
           </p>
           <InputOTP
@@ -108,28 +108,28 @@ export default function LoginPage() {
             }}
             autoFocus
           >
-            <InputOTPGroup className='w-full justify-center'>
-              <InputOTPSlot index={0} className='size-12 text-lg bg-card' />
-              <InputOTPSlot index={1} className='size-12 text-lg bg-card' />
-              <InputOTPSlot index={2} className='size-12 text-lg bg-card' />
-              <InputOTPSlot index={3} className='size-12 text-lg bg-card' />
-              <InputOTPSlot index={4} className='size-12 text-lg bg-card' />
-              <InputOTPSlot index={5} className='size-12 text-lg bg-card' />
+            <InputOTPGroup className="w-full justify-center">
+              <InputOTPSlot index={0} className="bg-card size-12 text-lg" />
+              <InputOTPSlot index={1} className="bg-card size-12 text-lg" />
+              <InputOTPSlot index={2} className="bg-card size-12 text-lg" />
+              <InputOTPSlot index={3} className="bg-card size-12 text-lg" />
+              <InputOTPSlot index={4} className="bg-card size-12 text-lg" />
+              <InputOTPSlot index={5} className="bg-card size-12 text-lg" />
             </InputOTPGroup>
           </InputOTP>
           <Button
-            type='submit'
+            type="submit"
             disabled={form.loading}
-            className='h-12 rounded-2xl px-6 text-lg font-semibold touch-manipulation active:scale-95 transition-transform'
+            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold transition-transform active:scale-95"
           >
             {form.loading ? "Verifierar..." : "Logga in"}
           </Button>
           <Button
-            type='button'
-            variant='link'
+            type="button"
+            variant="link"
             onClick={handleResend}
             disabled={!form.canResend || form.loading}
-            className='text-sm text-muted-foreground'
+            className="text-muted-foreground text-sm"
           >
             {form.canResend ? "Skicka ny kod" : "Skicka ny kod (vänta...)"}
           </Button>

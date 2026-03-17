@@ -8,7 +8,8 @@ export async function GET(request: NextRequest) {
   const next = searchParams.get("next") ?? "/log";
 
   // Open redirect guard: only allow relative paths
-  const safeNext = next.startsWith("/") && !next.startsWith("//") ? next : "/log";
+  const safeNext =
+    next.startsWith("/") && !next.startsWith("//") ? next : "/log";
 
   if (token_hash && type) {
     const supabase = await createClient();

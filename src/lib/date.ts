@@ -4,9 +4,7 @@ export function todayInStockholm(): string {
   return new Date().toLocaleDateString("sv-SE", { timeZone: TZ });
 }
 
-export function stockholmDayRange(
-  day: string,
-): { start: string; end: string } {
+export function stockholmDayRange(day: string): { start: string; end: string } {
   const getStockholmMidnightUTC = (dateStr: string): string => {
     const [year, month, dayNum] = dateStr.split("-").map(Number);
 
@@ -34,8 +32,7 @@ export function stockholmDayRange(
     // First guess: midnight UTC on that day (close to Stockholm midnight)
     const guess = new Date(Date.UTC(year, month - 1, dayNum, 0, 0, 0));
     let local = getLocalParts(guess);
-    let localMs =
-      (local.hour * 3600 + local.minute * 60 + local.second) * 1000;
+    let localMs = (local.hour * 3600 + local.minute * 60 + local.second) * 1000;
     // Adjust: subtract the local time offset to get to midnight Stockholm
     let midnight = new Date(guess.getTime() - localMs);
 
@@ -43,8 +40,7 @@ export function stockholmDayRange(
     // Re-check using the computed midnight time
     local = getLocalParts(midnight);
     if (local.hour !== 0 || local.minute !== 0) {
-      localMs =
-        (local.hour * 3600 + local.minute * 60 + local.second) * 1000;
+      localMs = (local.hour * 3600 + local.minute * 60 + local.second) * 1000;
       midnight = new Date(midnight.getTime() - localMs);
     }
 

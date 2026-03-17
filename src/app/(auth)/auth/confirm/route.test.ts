@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { NextRequest } from "next/server";
 
 const mockVerifyOtp = vi.fn();
-const mockRedirect = vi.fn((url: URL) => ({ redirected: true, url: url.toString() }));
+const mockRedirect = vi.fn((url: URL) => ({
+  redirected: true,
+  url: url.toString(),
+}));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: vi.fn().mockResolvedValue({
@@ -33,9 +36,12 @@ describe("GET /auth/confirm", () => {
     const { GET } = await import("./route");
     await GET(makeRequest({ token_hash: "abc", type: "email" }));
 
-    expect(mockVerifyOtp).toHaveBeenCalledWith({ token_hash: "abc", type: "email" });
+    expect(mockVerifyOtp).toHaveBeenCalledWith({
+      token_hash: "abc",
+      type: "email",
+    });
     expect(mockRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: "/log" })
+      expect.objectContaining({ pathname: "/log" }),
     );
   });
 
@@ -43,10 +49,12 @@ describe("GET /auth/confirm", () => {
     mockVerifyOtp.mockResolvedValue({ error: null });
 
     const { GET } = await import("./route");
-    await GET(makeRequest({ token_hash: "abc", type: "email", next: "/history" }));
+    await GET(
+      makeRequest({ token_hash: "abc", type: "email", next: "/history" }),
+    );
 
     expect(mockRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: "/history" })
+      expect.objectContaining({ pathname: "/history" }),
     );
   });
 
@@ -54,10 +62,16 @@ describe("GET /auth/confirm", () => {
     mockVerifyOtp.mockResolvedValue({ error: null });
 
     const { GET } = await import("./route");
-    await GET(makeRequest({ token_hash: "abc", type: "email", next: "https://evil.com" }));
+    await GET(
+      makeRequest({
+        token_hash: "abc",
+        type: "email",
+        next: "https://evil.com",
+      }),
+    );
 
     expect(mockRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: "/log" })
+      expect.objectContaining({ pathname: "/log" }),
     );
   });
 
@@ -65,10 +79,12 @@ describe("GET /auth/confirm", () => {
     mockVerifyOtp.mockResolvedValue({ error: null });
 
     const { GET } = await import("./route");
-    await GET(makeRequest({ token_hash: "abc", type: "email", next: "//evil.com" }));
+    await GET(
+      makeRequest({ token_hash: "abc", type: "email", next: "//evil.com" }),
+    );
 
     expect(mockRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: "/log" })
+      expect.objectContaining({ pathname: "/log" }),
     );
   });
 
@@ -78,7 +94,7 @@ describe("GET /auth/confirm", () => {
 
     expect(mockVerifyOtp).not.toHaveBeenCalled();
     expect(mockRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: "/login" })
+      expect.objectContaining({ pathname: "/login" }),
     );
   });
 
@@ -89,7 +105,7 @@ describe("GET /auth/confirm", () => {
     await GET(makeRequest({ token_hash: "bad", type: "email" }));
 
     expect(mockRedirect).toHaveBeenCalledWith(
-      expect.objectContaining({ pathname: "/login" })
+      expect.objectContaining({ pathname: "/login" }),
     );
   });
 });

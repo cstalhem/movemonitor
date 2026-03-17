@@ -18,7 +18,9 @@ export function groupByDay(
   const cursor = new Date(`${startDay}T12:00:00Z`);
   const last = new Date(`${endDay}T12:00:00Z`);
   while (cursor <= last) {
-    days.push(cursor.toLocaleDateString("sv-SE", { timeZone: "Europe/Stockholm" }));
+    days.push(
+      cursor.toLocaleDateString("sv-SE", { timeZone: "Europe/Stockholm" }),
+    );
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
 

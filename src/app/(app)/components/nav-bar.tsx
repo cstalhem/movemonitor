@@ -12,7 +12,7 @@ export function NavBar() {
   ];
 
   return (
-    <nav className='fixed bottom-0 inset-x-0 z-10 flex bg-card pb-safe'>
+    <nav className="bg-card pb-safe fixed inset-x-0 bottom-0 z-10 flex">
       {tabs.map((tab) => (
         <Link
           key={tab.href}

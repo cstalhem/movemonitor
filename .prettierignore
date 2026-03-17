@@ -1,0 +1,9 @@
+.next/
+out/
+build/
+node_modules/
+bun.lock
+.claude/agents/
+.claude/skills/
+.mcp.json
+*.md

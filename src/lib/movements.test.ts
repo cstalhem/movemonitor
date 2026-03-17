@@ -187,9 +187,7 @@ describe("getDayCounts", () => {
   });
 
   it("passes rows to groupByDay and returns its result", async () => {
-    const rows = [
-      { intensity: "mycket", occurred_at: "2026-03-05T10:00:00Z" },
-    ];
+    const rows = [{ intensity: "mycket", occurred_at: "2026-03-05T10:00:00Z" }];
     mockOrder.mockResolvedValue({ data: rows, error: null });
 
     const fakeDayCounts = [

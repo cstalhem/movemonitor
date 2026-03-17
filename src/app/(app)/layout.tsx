@@ -8,7 +8,9 @@ export default function AppLayout({
 }>) {
   return (
     <>
-      <main className="flex flex-1 flex-col overflow-auto pb-16">{children}</main>
+      <main className="flex flex-1 flex-col overflow-auto pb-16">
+        {children}
+      </main>
       <NavBar />
       <Toaster />
     </>

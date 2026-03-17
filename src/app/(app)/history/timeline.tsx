@@ -64,12 +64,12 @@ export function Timeline({ movements }: Props) {
               type="button"
               onClick={() => setConfirmId(movement.id)}
               className={cn(
-                "flex gap-3 text-left active:bg-muted/50 transition-colors",
+                "active:bg-muted/50 flex gap-3 text-left transition-colors",
                 isPending && "pointer-events-none opacity-50",
               )}
             >
               {/* Time column */}
-              <span className="w-14 shrink-0 leading-7 text-lg tabular-nums text-muted-foreground">
+              <span className="text-muted-foreground w-14 shrink-0 text-lg leading-7 tabular-nums">
                 {formatTime(movement.occurred_at)}
               </span>
 
@@ -90,13 +90,13 @@ export function Timeline({ movements }: Props) {
                     />
                   )}
                 </span>
-                {!isLast && <span className="w-px flex-1 bg-border" />}
+                {!isLast && <span className="bg-border w-px flex-1" />}
               </div>
 
               {/* Label column */}
               <span
                 className={cn(
-                  "ml-4 pb-8 leading-7 text-xl text-foreground",
+                  "text-foreground ml-4 pb-8 text-xl leading-7",
                   isLast && "pb-0",
                 )}
               >

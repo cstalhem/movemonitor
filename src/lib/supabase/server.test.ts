@@ -33,7 +33,7 @@ describe("createClient (server)", () => {
           getAll: expect.any(Function),
           setAll: expect.any(Function),
         }),
-      })
+      }),
     );
   });
 
@@ -62,7 +62,7 @@ describe("createClient (server)", () => {
 
     const cookiesArg = mockCreateServerClient.mock.calls[0][2].cookies;
     expect(() =>
-      cookiesArg.setAll([{ name: "a", value: "1", options: {} }])
+      cookiesArg.setAll([{ name: "a", value: "1", options: {} }]),
     ).not.toThrow();
   });
 });
