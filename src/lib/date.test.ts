@@ -6,6 +6,8 @@ import {
   offsetDay,
   formatDayLabel,
   isValidDateString,
+  minuteOfDayInStockholm,
+  nowMinuteInStockholm,
 } from "./date";
 
 describe("todayInStockholm", () => {
@@ -133,5 +135,49 @@ describe("isValidDateString", () => {
     expect(isValidDateString("2026-02-29")).toBe(false); // not a leap year
     expect(isValidDateString("2026-13-01")).toBe(false);
     expect(isValidDateString("2026-02-30")).toBe(false);
+  });
+});
+
+describe("minuteOfDayInStockholm", () => {
+  it("returns correct minute for a normal CET time", () => {
+    // 08:23 UTC = 09:23 CET → 9*60+23 = 563
+    expect(minuteOfDayInStockholm("2026-03-12T08:23:00Z")).toBe(563);
+  });
+
+  it("returns 0 for Stockholm midnight", () => {
+    // 23:00 UTC = 00:00 CET (next day)
+    expect(minuteOfDayInStockholm("2026-03-11T23:00:00Z")).toBe(0);
+  });
+
+  it("returns 1439 for 23:59 Stockholm", () => {
+    // 22:59 UTC = 23:59 CET → 23*60+59 = 1439
+    expect(minuteOfDayInStockholm("2026-03-12T22:59:00Z")).toBe(1439);
+  });
+
+  it("handles DST spring-forward", () => {
+    // 2026-03-29: CET→CEST, 02:00 skipped to 03:00
+    // 01:00 UTC = 03:00 CEST → 3*60 = 180
+    expect(minuteOfDayInStockholm("2026-03-29T01:00:00Z")).toBe(180);
+  });
+
+  it("handles DST fall-back", () => {
+    // 2026-10-25: CEST→CET at 03:00 CEST (01:00 UTC)
+    // 00:30 UTC = 02:30 CEST (before fall-back) → 2*60+30 = 150
+    expect(minuteOfDayInStockholm("2026-10-25T00:30:00Z")).toBe(150);
+  });
+});
+
+describe("nowMinuteInStockholm", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("returns minuteOfDay for the current time", () => {
+    vi.setSystemTime(new Date("2026-03-12T08:23:00Z"));
+    expect(nowMinuteInStockholm()).toBe(563);
   });
 });

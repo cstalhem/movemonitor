@@ -88,6 +88,27 @@ export function isValidDateString(s: string): boolean {
   );
 }
 
+// DST fall-back limitation: during DST fall-back (Oct 25 2026 in Sweden),
+// hour 02:00–02:59 occurs twice — two movements during overlapping hours
+// map to the same minuteOfDay. The sort in buildTimelineItems uses
+// occurred_at (UTC) as tiebreaker.
+export function minuteOfDayInStockholm(isoString: string): number {
+  const formatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: TZ,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(new Date(isoString));
+  const hour = parseInt(parts.find((p) => p.type === "hour")!.value, 10);
+  const minute = parseInt(parts.find((p) => p.type === "minute")!.value, 10);
+  return hour * 60 + minute;
+}
+
+export function nowMinuteInStockholm(): number {
+  return minuteOfDayInStockholm(new Date().toISOString());
+}
+
 export function formatTime(isoString: string): string {
   return new Date(isoString).toLocaleTimeString("sv-SE", {
     timeZone: TZ,
