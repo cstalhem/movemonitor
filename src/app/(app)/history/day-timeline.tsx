@@ -1,4 +1,5 @@
 import { getMovementsByDay } from "@/lib/movements";
+import { todayInStockholm } from "@/lib/date";
 import { Timeline } from "./timeline";
 
 export default async function DayTimeline({ day }: { day: string }) {
@@ -12,5 +13,5 @@ export default async function DayTimeline({ day }: { day: string }) {
     );
   }
 
-  return <Timeline movements={movements} />;
+  return <Timeline movements={movements} isToday={day === todayInStockholm()} />;
 }

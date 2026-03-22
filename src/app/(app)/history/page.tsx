@@ -30,16 +30,20 @@ export default async function HistoryPage({
   const dayCounts = await getDayCounts(startDay, today);
 
   return (
-    <div className="flex flex-1 flex-col pt-2">
-      <DayCarousel
-        key={startDay}
-        dayCounts={dayCounts}
-        selectedDay={selectedDay}
-        today={today}
-      />
-      <Suspense key={selectedDay} fallback={<TimelineSkeleton />}>
-        <DayTimeline day={selectedDay} />
-      </Suspense>
+    <div className="flex min-h-0 flex-1 flex-col pt-2">
+      <div className="shrink-0">
+        <DayCarousel
+          key={startDay}
+          dayCounts={dayCounts}
+          selectedDay={selectedDay}
+          today={today}
+        />
+      </div>
+      <div className="flex min-h-0 flex-1 flex-col">
+        <Suspense key={selectedDay} fallback={<TimelineSkeleton />}>
+          <DayTimeline day={selectedDay} />
+        </Suspense>
+      </div>
     </div>
   );
 }
