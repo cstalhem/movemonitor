@@ -23,17 +23,15 @@ export default async function HistoryPage({
 
   const selectedDay = date ?? today;
 
-  // Seed carousel window: 14 days ending at today, shifted if selectedDay is older
-  const defaultStart = offsetDay(today, -13);
-  const startDay =
-    selectedDay < defaultStart ? offsetDay(selectedDay, -6) : defaultStart;
+  // Load 180 days of aggregate counts — lightweight query, avoids
+  // dynamic prefetch / scroll-compensation complexity in the carousel.
+  const startDay = offsetDay(today, -179);
   const dayCounts = await getDayCounts(startDay, today);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col pt-2">
       <div className="shrink-0">
         <DayCarousel
-          key={startDay}
           dayCounts={dayCounts}
           selectedDay={selectedDay}
           today={today}

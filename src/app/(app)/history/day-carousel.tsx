@@ -1,10 +1,15 @@
 "use client";
 
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { formatDayLabel, offsetDay, stockholmDayRange } from "@/lib/date";
-import { groupByDay, type DayCount } from "@/lib/day-counts";
-import { createClient } from "@/lib/supabase/client";
+import { formatDayLabel } from "@/lib/date";
+
+type DayCount = {
+  day: string;
+  mycket: number;
+  mellan: number;
+  lite: number;
+};
 
 type Props = {
   dayCounts: DayCount[];
@@ -12,28 +17,14 @@ type Props = {
   today: string;
 };
 
-export function DayCarousel({
-  dayCounts: initialDayCounts,
-  selectedDay,
-  today,
-}: Props) {
+export function DayCarousel({ dayCounts, selectedDay, today }: Props) {
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
-  const sentinelRef = useRef<HTMLDivElement>(null);
   const isProgrammaticScroll = useRef(false);
   const settleTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isFetching = useRef(false);
+  const pendingDays = useRef(new Set<string>());
+  const [, startTransition] = useTransition();
 
-  const [dayCounts, setDayCounts] = useState(initialDayCounts);
-  const [prevInitial, setPrevInitial] = useState(initialDayCounts);
-  if (initialDayCounts !== prevInitial) {
-    setPrevInitial(initialDayCounts);
-    setDayCounts(initialDayCounts);
-  }
-  const [loadedRange, setLoadedRange] = useState({
-    oldest: initialDayCounts[0]?.day ?? today,
-    newest: initialDayCounts[initialDayCounts.length - 1]?.day ?? today,
-  });
   // Tracks whichever day is currently under the center marker (updates live during scroll)
   const [centeredDay, setCenteredDay] = useState(selectedDay);
 
@@ -72,9 +63,12 @@ export function DayCarousel({
     if (isProgrammaticScroll.current) return;
     const day = findCenteredDay();
     if (day && day !== selectedDay) {
-      router.replace(`/history?date=${day}`, { scroll: false });
+      pendingDays.current.add(day);
+      startTransition(() => {
+        router.replace(`/history?date=${day}`, { scroll: false });
+      });
     }
-  }, [findCenteredDay, selectedDay, router]);
+  }, [findCenteredDay, selectedDay, router, startTransition]);
 
   // Scroll handling: live-update centered day + settle detection for URL
   useEffect(() => {
@@ -110,8 +104,13 @@ export function DayCarousel({
     };
   }, [handleSettle, findCenteredDay]);
 
-  // Initial scroll to selected day
+  // Scroll to selected day — skip when we initiated the navigation ourselves
   useEffect(() => {
+    if (pendingDays.current.delete(selectedDay)) {
+      return;
+    }
+    pendingDays.current.clear();
+
     const container = containerRef.current;
     if (!container) return;
     const selectedBar = container.querySelector(`[data-day="${selectedDay}"]`);
@@ -123,51 +122,6 @@ export function DayCarousel({
       });
     }
   }, [selectedDay]);
-
-  // Edge prefetching via IntersectionObserver
-  useEffect(() => {
-    const sentinel = sentinelRef.current;
-    const container = containerRef.current;
-    if (!sentinel || !container) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting && !isFetching.current) {
-          isFetching.current = true;
-          const newEnd = offsetDay(loadedRange.oldest, -1);
-          const newStart = offsetDay(newEnd, -13);
-          fetchDayCounts(newStart, newEnd)
-            .then((olderDays) => {
-              const prevScrollLeft = container.scrollLeft;
-              const prevScrollWidth = container.scrollWidth;
-
-              setDayCounts((prev) => [...olderDays, ...prev]);
-              setLoadedRange((prev) => ({ ...prev, oldest: newStart }));
-
-              requestAnimationFrame(() => {
-                const addedWidth = container.scrollWidth - prevScrollWidth;
-                isProgrammaticScroll.current = true;
-                if (settleTimer.current) clearTimeout(settleTimer.current);
-                container.scrollLeft = prevScrollLeft + addedWidth;
-                requestAnimationFrame(() => {
-                  isProgrammaticScroll.current = false;
-                });
-              });
-            })
-            .catch(() => {
-              // TODO(Step 5): show error toast
-            })
-            .finally(() => {
-              isFetching.current = false;
-            });
-        }
-      },
-      { root: container, rootMargin: "0px 0px 0px 200px" },
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [loadedRange.oldest]);
 
   return (
     <div className="flex flex-col py-3">
@@ -198,7 +152,6 @@ export function DayCarousel({
         ref={containerRef}
         className="scrollbar-hide mb-1 flex snap-x snap-mandatory items-end gap-1 overflow-x-auto px-[calc(50%-1rem)]"
       >
-        <div ref={sentinelRef} className="w-px shrink-0" />
         {dayCounts.map((dc) => (
           <StackedBar key={dc.day} dayCount={dc} maxTotal={maxTotal} />
         ))}
@@ -227,26 +180,6 @@ export function DayCarousel({
       </div>
     </div>
   );
-}
-
-// Client-side prefetch helper
-async function fetchDayCounts(
-  startDay: string,
-  endDay: string,
-): Promise<DayCount[]> {
-  const supabase = createClient();
-  const { start } = stockholmDayRange(startDay);
-  const { end } = stockholmDayRange(endDay);
-
-  const { data, error } = await supabase
-    .from("movements")
-    .select("intensity, occurred_at")
-    .gte("occurred_at", start)
-    .lt("occurred_at", end)
-    .order("occurred_at", { ascending: true });
-
-  if (error) throw error;
-  return groupByDay(data ?? [], startDay, endDay);
 }
 
 const MAX_HEIGHT = 64; // px

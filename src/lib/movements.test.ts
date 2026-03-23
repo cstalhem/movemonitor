@@ -6,7 +6,8 @@ const mockSingle = vi.fn();
 const mockSelectCreate = vi.fn().mockReturnValue({ single: mockSingle });
 const mockInsert = vi.fn().mockReturnValue({ select: mockSelectCreate });
 
-const mockOrder = vi.fn();
+const mockRange = vi.fn();
+const mockOrder = vi.fn().mockReturnValue({ range: mockRange });
 const mockLt = vi.fn().mockReturnValue({ order: mockOrder });
 const mockGte = vi.fn().mockReturnValue({ lt: mockLt });
 const mockSelectRead = vi.fn().mockReturnValue({ gte: mockGte });
@@ -143,7 +144,9 @@ describe("getMovementsByDay", () => {
 describe("getDayCounts", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockOrder.mockResolvedValue({ data: [], error: null });
+    // Re-establish chain after clearAllMocks wiped initial mockReturnValue
+    mockOrder.mockReturnValue({ range: mockRange });
+    mockRange.mockResolvedValue({ data: [], error: null });
     vi.mocked(stockholmDayRange).mockImplementation((day: string) => {
       if (day === "2026-03-02")
         return {
@@ -188,7 +191,7 @@ describe("getDayCounts", () => {
 
   it("passes rows to groupByDay and returns its result", async () => {
     const rows = [{ intensity: "mycket", occurred_at: "2026-03-05T10:00:00Z" }];
-    mockOrder.mockResolvedValue({ data: rows, error: null });
+    mockRange.mockResolvedValue({ data: rows, error: null });
 
     const fakeDayCounts = [
       { day: "2026-03-02", mycket: 1, mellan: 0, lite: 0 },
@@ -203,7 +206,7 @@ describe("getDayCounts", () => {
   });
 
   it("throws on Supabase error", async () => {
-    mockOrder.mockResolvedValue({
+    mockRange.mockResolvedValue({
       data: null,
       error: { message: "query failed" },
     });
