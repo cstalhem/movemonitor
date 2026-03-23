@@ -15,6 +15,14 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: "Movemonitor",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Movemonitor",
+  },
+  icons: {
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
@@ -25,7 +33,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} bg-background text-foreground flex h-dvh flex-col font-sans antialiased`}
+        className={`${geistSans.variable} bg-background text-foreground pt-safe flex h-dvh flex-col font-sans antialiased`}
       >
         {children}
       </body>
