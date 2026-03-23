@@ -8,9 +8,9 @@ import { Button } from "@/components/ui/button";
 import { logMovement, undoMovement } from "./actions";
 
 const buttonColorMap = {
-  "chart-1": "bg-chart-1 text-white hover:bg-chart-1/90",
-  "chart-2": "bg-chart-2 text-white hover:bg-chart-2/90",
-  "chart-3": "bg-chart-3 text-white hover:bg-chart-3/90",
+  "chart-1": "bg-chart-1 text-white hover:bg-chart-1/90 [--spring-glow:var(--color-chart-1)]",
+  "chart-2": "bg-chart-2 text-white hover:bg-chart-2/90 [--spring-glow:var(--color-chart-2)]",
+  "chart-3": "bg-chart-3 text-white hover:bg-chart-3/90 [--spring-glow:var(--color-chart-3)]",
 } as const;
 
 const DEBOUNCE_MS = 500;

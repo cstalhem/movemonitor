@@ -222,7 +222,7 @@
 
   &:active {
     transform: scale(0.95);
-    box-shadow: 0 0 12px 2px oklch(from currentColor l c h / 0.3);
+    box-shadow: 0 0 14px 3px color-mix(in oklch, var(--spring-glow, currentColor) 40%, transparent);
     transition:
       transform 34ms ease-out,
       box-shadow 80ms ease-out;
