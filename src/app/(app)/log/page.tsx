@@ -58,21 +58,28 @@ export default function LogPage() {
   );
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
-      {intensities.map(({ value, label, icon: Icon, color }) => (
-        <Button
-          key={value}
-          onClick={() => handleLog(value)}
-          disabled={isPending}
-          className={cn(
-            "w-full max-w-sm touch-manipulation rounded-2xl px-6 py-6 text-xl font-semibold transition-transform active:scale-95",
-            buttonColorMap[color],
-          )}
-        >
-          <Icon className="size-6" />
-          {label}
-        </Button>
-      ))}
-    </div>
+    <>
+      <div className="shrink-0 pt-2">
+        <h1 className="text-center text-xl font-bold uppercase tracking-[1.5px] text-foreground">
+          Movemonitor
+        </h1>
+      </div>
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6">
+        {intensities.map(({ value, label, icon: Icon, color }) => (
+          <Button
+            key={value}
+            onClick={() => handleLog(value)}
+            disabled={isPending}
+            className={cn(
+              "w-full max-w-sm touch-manipulation rounded-2xl px-6 py-6 text-xl font-semibold spring-press",
+              buttonColorMap[color],
+            )}
+          >
+            <Icon className="size-6" />
+            {label}
+          </Button>
+        ))}
+      </div>
+    </>
   );
 }

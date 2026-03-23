@@ -162,4 +162,18 @@ describe("LogPage", () => {
       expect(mockToastError).toHaveBeenCalledWith("Ångra misslyckades");
     });
   });
+
+  it("renders MOVEMONITOR heading", async () => {
+    const { default: LogPage } = await import("./page");
+    render(<LogPage />);
+    expect(screen.getByRole("heading", { name: /movemonitor/i })).toBeInTheDocument();
+  });
+
+  it("applies spring-press class to log buttons", async () => {
+    const { default: LogPage } = await import("./page");
+    render(<LogPage />);
+    const button = screen.getByRole("button", { name: /Mycket/i });
+    expect(button).toHaveClass("spring-press");
+    expect(button.className).not.toContain("active:scale-95");
+  });
 });

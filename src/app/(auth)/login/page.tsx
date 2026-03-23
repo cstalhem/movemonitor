@@ -58,7 +58,7 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-foreground mb-8 text-center text-2xl font-bold">
+      <h1 className="mb-8 text-center text-xl font-bold uppercase tracking-[1.5px] text-foreground">
         Movemonitor
       </h1>
 
@@ -88,7 +88,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={form.loading}
-            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold transition-transform active:scale-95"
+            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold spring-press"
           >
             {form.loading ? "Skickar..." : "Skicka kod"}
           </Button>
@@ -120,7 +120,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={form.loading}
-            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold transition-transform active:scale-95"
+            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold spring-press"
           >
             {form.loading ? "Verifierar..." : "Logga in"}
           </Button>

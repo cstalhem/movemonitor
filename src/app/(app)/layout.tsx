@@ -8,7 +8,7 @@ export default function AppLayout({
 }>) {
   return (
     <>
-      <main className="flex min-h-0 flex-1 flex-col overflow-hidden pb-16">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden pb-18">
         {children}
       </main>
       <NavBar />
