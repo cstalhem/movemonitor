@@ -8,21 +8,17 @@ vi.mock("next/navigation", () => ({
   usePathname: vi.fn().mockReturnValue("/log"),
 }));
 
-// Mock next/link to render a plain anchor
+// Mock next/link to render a plain anchor with ref forwarding
+import { forwardRef } from "react";
 vi.mock("next/link", () => ({
-  default: ({
-    children,
-    href,
-    className,
-  }: {
-    children: React.ReactNode;
-    href: string;
-    className?: string;
-  }) => (
-    <a href={href} className={className}>
+  default: forwardRef<
+    HTMLAnchorElement,
+    { children: React.ReactNode; href: string; className?: string }
+  >(({ children, href, className }, ref) => (
+    <a href={href} className={className} ref={ref}>
       {children}
     </a>
-  ),
+  )),
 }));
 
 describe("NavBar", () => {
@@ -38,12 +34,16 @@ describe("NavBar", () => {
     });
   });
 
-  it("highlights active tab with primary background", async () => {
+  it("highlights active tab with sliding indicator", async () => {
     const { NavBar } = await import("./nav-bar");
-    render(<NavBar />);
+    const { container } = render(<NavBar />);
 
     const activeLink = screen.getByRole("link", { name: /logga/i });
-    expect(activeLink).toHaveClass("bg-primary");
+    expect(activeLink).toHaveClass("text-primary-foreground");
+
+    // The sliding indicator is a sibling div with bg-primary
+    const indicator = container.querySelector("nav > div > div.bg-primary");
+    expect(indicator).toBeInTheDocument();
   });
 
   it("renders as a floating pill", async () => {
