@@ -51,6 +51,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
           actionButton: "!bg-primary !text-primary-foreground",
         },
       }}
+      offset={{ top: "calc(env(safe-area-inset-top, 0px) + 24px)" }}
+      mobileOffset={{ top: "calc(env(safe-area-inset-top, 0px) + 16px)" }}
       {...props}
     />
   );
