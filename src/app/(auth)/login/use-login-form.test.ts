@@ -101,9 +101,40 @@ describe("useLoginForm", () => {
     await form.submitEmail();
 
     expect(form.canResend).toBe(false);
+    expect(form.cooldownSeconds).toBe(30);
 
-    // Advance past the cooldown (60s)
-    vi.advanceTimersByTime(60_000);
+    // Advance past the cooldown (30s)
+    vi.advanceTimersByTime(30_000);
     expect(form.canResend).toBe(true);
+    expect(form.cooldownSeconds).toBe(0);
+  });
+
+  it("cooldownSeconds decrements each second", async () => {
+    mockSignInWithOtp.mockResolvedValue({ error: null });
+
+    const { useLoginForm } = await import("./use-login-form");
+    const form = useLoginForm();
+    form.setEmail("test@example.com");
+    await form.submitEmail();
+
+    expect(form.cooldownSeconds).toBe(30);
+    vi.advanceTimersByTime(1_000);
+    expect(form.cooldownSeconds).toBe(29);
+    vi.advanceTimersByTime(4_000);
+    expect(form.cooldownSeconds).toBe(25);
+  });
+
+  it("calls onTick each second during cooldown", async () => {
+    mockSignInWithOtp.mockResolvedValue({ error: null });
+    const tick = vi.fn();
+
+    const { useLoginForm } = await import("./use-login-form");
+    const form = useLoginForm();
+    form.setOnTick(tick);
+    form.setEmail("test@example.com");
+    await form.submitEmail();
+
+    vi.advanceTimersByTime(3_000);
+    expect(tick).toHaveBeenCalledTimes(3);
   });
 });
