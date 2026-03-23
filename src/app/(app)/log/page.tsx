@@ -61,11 +61,12 @@ export default function LogPage() {
 
   return (
     <>
-      <div className="relative shrink-0 pt-2">
-        <h1 className="text-center text-xl font-bold uppercase tracking-[1.5px] text-foreground">
+      <div className="flex shrink-0 items-center px-4 pt-2">
+        <div className="w-7" />
+        <h1 className="flex-1 text-center text-xl font-bold uppercase tracking-[1.5px] text-foreground">
           Movemonitor
         </h1>
-        <form action={signOut} className="absolute right-4 top-1/2 -translate-y-1/2">
+        <form action={signOut}>
           <button type="submit" className="text-muted-foreground active:text-foreground p-1">
             <LogOut className="size-5" />
           </button>
