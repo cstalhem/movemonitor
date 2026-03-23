@@ -14,7 +14,7 @@ export function NavBar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom,0px)/2)]">
+    <nav className="fixed inset-x-0 bottom-0 z-10 flex justify-center px-6 pb-[calc(env(safe-area-inset-bottom,0px)/4)]">
       <div className="flex gap-1 rounded-full bg-card p-1.5 shadow-lg border border-border/50">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href;
