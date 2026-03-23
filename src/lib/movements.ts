@@ -34,15 +34,27 @@ export async function getDayCounts(
   const { start } = stockholmDayRange(startDay);
   const { end } = stockholmDayRange(endDay);
 
-  const { data, error } = await supabase
-    .from("movements")
-    .select("intensity, occurred_at")
-    .gte("occurred_at", start)
-    .lt("occurred_at", end)
-    .order("occurred_at", { ascending: true });
+  // Paginate to avoid Supabase's default 1000-row limit (db-max-rows).
+  const PAGE_SIZE = 1000;
+  let allRows: Array<{ intensity: string; occurred_at: string }> = [];
+  let from = 0;
 
-  if (error) throw error;
-  return groupByDay(data ?? [], startDay, endDay);
+  for (;;) {
+    const { data, error } = await supabase
+      .from("movements")
+      .select("intensity, occurred_at")
+      .gte("occurred_at", start)
+      .lt("occurred_at", end)
+      .order("occurred_at", { ascending: true })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (error) throw error;
+    allRows = allRows.concat(data ?? []);
+    if (!data || data.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
+
+  return groupByDay(allRows, startDay, endDay);
 }
 
 export async function createMovement(
