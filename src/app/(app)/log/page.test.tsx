@@ -26,6 +26,11 @@ vi.mock("./actions", () => ({
   undoMovement: mockUndoMovement,
 }));
 
+const mockSignOut = vi.fn();
+vi.mock("@/app/(auth)/login/actions", () => ({
+  signOut: mockSignOut,
+}));
+
 // Mock constants (to control button rendering)
 vi.mock("@/lib/constants", () => ({
   intensities: [
@@ -167,6 +172,14 @@ describe("LogPage", () => {
     const { default: LogPage } = await import("./page");
     render(<LogPage />);
     expect(screen.getByRole("heading", { name: /movemonitor/i })).toBeInTheDocument();
+  });
+
+  it("renders a logout button", async () => {
+    const { default: LogPage } = await import("./page");
+    const { container } = render(<LogPage />);
+    const logoutBtn = container.querySelector("form button");
+    expect(logoutBtn).toBeInTheDocument();
+    expect(logoutBtn?.querySelector("svg")).toBeInTheDocument();
   });
 
   it("applies spring-press class to log buttons", async () => {
