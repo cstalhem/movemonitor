@@ -33,8 +33,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} bg-background text-foreground pt-safe flex h-dvh flex-col font-sans antialiased`}
+        className={`${geistSans.variable} bg-background text-foreground pt-safe flex h-dvh flex-col overflow-hidden font-sans antialiased`}
       >
+        {/* Enable :active CSS pseudo-class on iOS Safari */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              "document.addEventListener('touchstart',function(){},{passive:true})",
+          }}
+        />
         {children}
       </body>
     </html>

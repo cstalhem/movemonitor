@@ -30,10 +30,14 @@ export default function LoginPage() {
       });
   }, [router]);
 
-  // Cleanup cooldown timer
+  // Wire up tick callback for countdown re-renders + cleanup
   useEffect(() => {
-    return () => form.dispose();
-  }, [form]);
+    form.setOnTick(kick);
+    return () => {
+      form.setOnTick(null);
+      form.dispose();
+    };
+  }, [form, kick]);
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -58,7 +62,7 @@ export default function LoginPage() {
 
   return (
     <div className="w-full max-w-sm">
-      <h1 className="text-foreground mb-8 text-center text-2xl font-bold">
+      <h1 className="mb-8 text-center text-xl font-bold uppercase tracking-[1.5px] text-foreground">
         Movemonitor
       </h1>
 
@@ -88,7 +92,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={form.loading}
-            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold transition-transform active:scale-95"
+            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold spring-press"
           >
             {form.loading ? "Skickar..." : "Skicka kod"}
           </Button>
@@ -106,6 +110,7 @@ export default function LoginPage() {
               form.setOtp(value);
               kick();
             }}
+            autoComplete="one-time-code"
             autoFocus
           >
             <InputOTPGroup className="w-full justify-center">
@@ -120,7 +125,7 @@ export default function LoginPage() {
           <Button
             type="submit"
             disabled={form.loading}
-            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold transition-transform active:scale-95"
+            className="h-12 touch-manipulation rounded-2xl px-6 text-lg font-semibold spring-press"
           >
             {form.loading ? "Verifierar..." : "Logga in"}
           </Button>
@@ -131,7 +136,9 @@ export default function LoginPage() {
             disabled={!form.canResend || form.loading}
             className="text-muted-foreground text-sm"
           >
-            {form.canResend ? "Skicka ny kod" : "Skicka ny kod (vänta...)"}
+            {form.canResend
+              ? "Skicka ny kod"
+              : `Skicka ny kod (${form.cooldownSeconds}s)`}
           </Button>
         </form>
       )}

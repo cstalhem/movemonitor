@@ -176,27 +176,28 @@ export function Timeline({ movements, isToday }: Props) {
 
   return (
     <>
-      <div
-        ref={scrollRef}
-        className="flex-1 overflow-y-auto"
-        style={
-          maskImage
-            ? {
-                maskImage,
-                WebkitMaskImage: maskImage,
-              }
-            : undefined
-        }
-      >
+      <div className="relative flex-1 overflow-hidden">
         {/* Off-screen indicator: above */}
         {aboveCount > 0 && (
-          <div className="sticky top-0 z-10 flex justify-center py-1.5">
-            <span className="rounded-full bg-muted px-3 py-0.5 text-xs text-muted-foreground shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center py-1.5">
+            <span className="rounded-full border border-border bg-card px-3 py-0.5 text-xs font-medium text-muted-foreground shadow-md backdrop-blur-sm">
               {aboveCount} tidigare
             </span>
           </div>
         )}
 
+        <div
+          ref={scrollRef}
+          className="h-full overflow-y-auto"
+          style={
+            maskImage
+              ? {
+                  maskImage,
+                  WebkitMaskImage: maskImage,
+                }
+              : undefined
+          }
+        >
         <ol
           className={cn(
             "flex flex-col px-6",
@@ -308,11 +309,12 @@ export function Timeline({ movements, isToday }: Props) {
             );
           })}
         </ol>
+        </div>
 
         {/* Off-screen indicator: below */}
         {belowCount > 0 && (
-          <div className="sticky bottom-0 z-10 flex justify-center py-1.5">
-            <span className="rounded-full bg-muted px-3 py-0.5 text-xs text-muted-foreground shadow-sm">
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex justify-center py-1.5">
+            <span className="rounded-full border border-border bg-card px-3 py-0.5 text-xs font-medium text-muted-foreground shadow-md backdrop-blur-sm">
               {belowCount} senare
             </span>
           </div>

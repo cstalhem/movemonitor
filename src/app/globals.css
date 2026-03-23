@@ -32,7 +32,7 @@
   --ring: var(--primary);
   --chart-1: var(--primary);
   --chart-2: var(--accent);
-  --chart-3: var(--muted-foreground);
+  --chart-3: oklch(0.6500 0.0800 245);
   --chart-4: var(--warning);
   --chart-5: var(--info);
   --sidebar: var(--background);
@@ -52,6 +52,8 @@
   --font-mono:
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
     "Courier New", monospace;
+  --spring-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --spring-duration: 400ms;
   --radius: 0.625rem;
   --shadow-x: 0;
   --shadow-y: 1px;
@@ -73,6 +75,19 @@
   --shadow-2xl: 0 1px 3px 0px hsl(0 0% 0% / 0.25);
   --tracking-normal: 0em;
   --spacing: 0.25rem;
+}
+
+@supports (animation-timing-function: linear(0, 1)) {
+  :root {
+    --spring-easing: linear(
+      0, 0.002, 0.008 1.2%, 0.028 2.4%, 0.065, 0.118 5.3%,
+      0.225 7.9%, 0.601 16%, 0.703, 0.793, 0.865, 0.924,
+      0.968 29%, 1.003 32%, 1.022, 1.035 36.5%, 1.043 39%,
+      1.046 42%, 1.045 44.5%, 1.041 47.5%, 1.012 62%,
+      1.003 70%, 0.998 80%, 0.999 100%
+    );
+    --spring-duration: 600ms;
+  }
 }
 
 .dark {
@@ -173,6 +188,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html,
+  body {
+    overscroll-behavior: none;
+  }
   body {
     @apply bg-background text-foreground;
   }
@@ -191,5 +210,29 @@
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;
+  }
+}
+
+@utility spring-press {
+  transform: scale(1);
+  transition:
+    transform var(--spring-duration) var(--spring-easing),
+    box-shadow 400ms ease-out;
+  will-change: transform;
+
+  &:active {
+    transform: scale(0.95);
+    box-shadow: 0 0 14px 3px color-mix(in oklch, var(--spring-glow, currentColor) 40%, transparent);
+    transition:
+      transform 34ms ease-out,
+      box-shadow 80ms ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
+    &:active {
+      transition: none;
+      box-shadow: none;
+    }
   }
 }
