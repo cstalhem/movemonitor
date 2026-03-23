@@ -27,8 +27,10 @@ vi.mock("./use-login-form", () => ({
     loading = false;
     error = null;
     canResend = false;
+    cooldownSeconds = 0;
     setEmail(v: string) { this.email = v; }
     setOtp(v: string) { this.otp = v; }
+    setOnTick() {}
     async submitEmail() {}
     async submitOtp() { return false; }
     async resend() {}

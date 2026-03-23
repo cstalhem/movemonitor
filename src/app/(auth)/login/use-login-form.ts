@@ -2,6 +2,8 @@ import { createClient } from "@/lib/supabase/client";
 
 type Phase = "email" | "otp";
 
+const COOLDOWN_SECONDS = 30;
+
 export class LoginForm {
   phase: Phase = "email";
   email = "";
@@ -9,7 +11,9 @@ export class LoginForm {
   error: string | null = null;
   loading = false;
   canResend = false;
-  private cooldownTimer: ReturnType<typeof setTimeout> | null = null;
+  cooldownSeconds = 0;
+  private cooldownTimer: ReturnType<typeof setInterval> | null = null;
+  private onTick: (() => void) | null = null;
   private _supabase: ReturnType<typeof createClient> | null = null;
 
   private get supabase() {
@@ -70,15 +74,27 @@ export class LoginForm {
     await this.submitEmail();
   }
 
+  setOnTick(cb: (() => void) | null) {
+    this.onTick = cb;
+  }
+
   private startCooldown() {
-    if (this.cooldownTimer) clearTimeout(this.cooldownTimer);
-    this.cooldownTimer = setTimeout(() => {
-      this.canResend = true;
-    }, 60_000);
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+    this.cooldownSeconds = COOLDOWN_SECONDS;
+    this.cooldownTimer = setInterval(() => {
+      this.cooldownSeconds--;
+      if (this.cooldownSeconds <= 0) {
+        this.cooldownSeconds = 0;
+        this.canResend = true;
+        if (this.cooldownTimer) clearInterval(this.cooldownTimer);
+        this.cooldownTimer = null;
+      }
+      this.onTick?.();
+    }, 1_000);
   }
 
   dispose() {
-    if (this.cooldownTimer) clearTimeout(this.cooldownTimer);
+    if (this.cooldownTimer) clearInterval(this.cooldownTimer);
   }
 }
 

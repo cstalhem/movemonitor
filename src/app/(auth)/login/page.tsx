@@ -30,10 +30,14 @@ export default function LoginPage() {
       });
   }, [router]);
 
-  // Cleanup cooldown timer
+  // Wire up tick callback for countdown re-renders + cleanup
   useEffect(() => {
-    return () => form.dispose();
-  }, [form]);
+    form.setOnTick(kick);
+    return () => {
+      form.setOnTick(null);
+      form.dispose();
+    };
+  }, [form, kick]);
 
   const handleEmailSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -106,6 +110,7 @@ export default function LoginPage() {
               form.setOtp(value);
               kick();
             }}
+            autoComplete="one-time-code"
             autoFocus
           >
             <InputOTPGroup className="w-full justify-center">
@@ -131,7 +136,9 @@ export default function LoginPage() {
             disabled={!form.canResend || form.loading}
             className="text-muted-foreground text-sm"
           >
-            {form.canResend ? "Skicka ny kod" : "Skicka ny kod (vänta...)"}
+            {form.canResend
+              ? "Skicka ny kod"
+              : `Skicka ny kod (${form.cooldownSeconds}s)`}
           </Button>
         </form>
       )}
